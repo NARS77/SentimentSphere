@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - SentimentSphere{% endblock %}
+
+{% block dashboard_active %}active{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    <a href="{% url 'analysis:upload_batch' %}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+        <i class="fas fa-upload fa-sm text-white-50 me-2"></i>Upload New Data
+    </a>
+</div>
+
+<div class="row">
+    <!-- Total Feedback Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Feedback
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_feedback }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processed Feedback Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Processed Feedback
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ processed_feedback }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Batches Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Batches
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_batches }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Percentage Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Processing Percentage
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                    {% if total_feedback > 0 %}
+                                        {{ processed_feedback|floatformat:0 }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                        style="width: {% if total_feedback > 0 %}{{ processed_feedback|floatformat:0 }}%{% else %}0%{% endif %}" 
+                                        aria-valuenow="{% if total_feedback > 0 %}{{ processed_feedback|floatformat:0 }}{% else %}0{% endif %}" 
+                                        aria-valuemin="0" aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sentiment Distribution Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">Chart Options:</div>
+                        <a class="dropdown-item" href="#">Last 7 Days</a>
+                        <a class="dropdown-item" href="#">Last 30 Days</a>
+                        <a class="dropdown-item" href="#">Last 3 Months</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Download Chart</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="sentimentChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Source Distribution Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Feedback Sources</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">Chart Options:</div>
+                        <a class="dropdown-item" href="#">All Sources</a>
+                        <a class="dropdown-item" href="#">Top 5 Sources</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Download Chart</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="sourceChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    {% for source in source_data %}
+                    <span class="me-2">
+                        <i class="fas fa-circle" style="color: #{% cycle '4e73df' 'e74a3b' '1cc88a' 'f6c23e' '36b9cc' %}"></i> {{ source.source__name }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Feedback -->
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Feedback</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Category</th>
+                                <th>Rating</th>
+                                <th>Content</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in recent_feedback %}
+                            <tr>
+                                <td>{{ feedback.source.name }}</td>
+                                <td>
+                                    {% if feedback.category %}
+                                    <span class="badge bg-{% if feedback.category.name == 'Positive' %}success{% elif feedback.category.name == 'Negative' %}danger{% elif feedback.category.name == 'Feature Request' %}primary{% elif feedback.category.name == 'Bug Report' %}warning{% else %}secondary{% endif %}">
+                                        {{ feedback.category.name }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Uncategorized</span>
+                                    {% endif %}
+                                </td>
+                                <td>{% if feedback.rating %}{{ feedback.rating }}{% else %}-{% endif %}</td>
+                                <td>{{ feedback.content|truncatechars:100 }}</td>
+                                <td>{{ feedback.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'dashboard:feedback_detail' feedback.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No feedback data available yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'dashboard:feedback_list' %}" class="btn btn-primary">View All Feedback</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+Chart.defaults.global.defaultFontColor = '#858796';
+
+// Sentiment Distribution Chart
+var sentimentCtx = document.getElementById("sentimentChart");
+var sentimentData = {
+    labels: [
+        {% for item in sentiment_data %}
+            "{{ item.category__name }}",
+        {% endfor %}
+    ],
+    datasets: [{
+        label: "Feedback Count",
+        backgroundColor: [
+            '#4e73df',
+            '#e74a3b',
+            '#1cc88a',
+            '#f6c23e',
+            '#36b9cc',
+            '#858796'
+        ],
+        borderColor: "rgba(78, 115, 223, 1)",
+        data: [
+            {% for item in sentiment_data %}
+                {{ item.count }},
+            {% endfor %}
+        ],
+    }],
+};
+
+var sentimentChart = new Chart(sentimentCtx, {
+    type: 'bar',
+    data: sentimentData,
+    options: {
+        maintainAspectRatio: false,
+        layout: {
+            padding: {
+                left: 10,
+                right: 25,
+                top: 25,
+                bottom: 0
+            }
+        },
+        scales: {
+            xAxes: [{
+                gridLines: {
+                    display: false,
+                    drawBorder: false
+                },
+                ticks: {
+                    maxTicksLimit: 7
+                },
+                maxBarThickness: 25,
+            }],
+            yAxes: [{
+                ticks: {
+                    min: 0,
+                    maxTicksLimit: 5,
+                    padding: 10,
+                },
+                gridLines: {
+                    color: "rgb(234, 236, 244)",
+                    zeroLineColor: "rgb(234, 236, 244)",
+                    drawBorder: false,
+                    borderDash: [2],
+                    zeroLineBorderDash: [2]
+                }
+            }],
+        },
+        legend: {
+            display: false
+        },
+        tooltips: {
+            titleMarginBottom: 10,
+            titleFontColor: '#6e707e',
+            titleFontSize: 14,
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+    }
+});
+
+// Source Distribution Pie Chart
+var sourceCtx = document.getElementById("sourceChart");
+var sourceChart = new Chart(sourceCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [
+            {% for source in source_data %}
+                "{{ source.source__name }}",
+            {% endfor %}
+        ],
+        datasets: [{
+            data: [
+                {% for source in source_data %}
+                    {{ source.count }},
+                {% endfor %}
+            ],
+            backgroundColor: ['#4e73df', '#e74a3b', '#1cc88a', '#f6c23e', '#36b9cc', '#858796'],
+            hoverBackgroundColor: ['#2e59d9', '#be3025', '#17a673', '#dda20a', '#2c9faf', '#6e707e'],
+            hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+    },
+    options: {
+        maintainAspectRatio: false,
+        tooltips: {
+            backgroundColor: "rgb(255,255,255)",
+            bodyFontColor: "#858796",
+            borderColor: '#dddfeb',
+            borderWidth: 1,
+            xPadding: 15,
+            yPadding: 15,
+            displayColors: false,
+            caretPadding: 10,
+        },
+        legend: {
+            display: false
+        },
+        cutoutPercentage: 80,
+    },
+});
+</script>
+{% endblock %}

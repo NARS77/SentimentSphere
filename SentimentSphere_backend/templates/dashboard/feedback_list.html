@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Feedback - SentimentSphere{% endblock %}
+
+{% block upload_active %}active{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Upload Feedback Data</h1>
+    <a href="{% url 'dashboard:dashboard' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Upload New Feedback Batch</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Batch Name</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.name.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.source.id_for_label }}" class="form-label">Feedback Source</label>
+                        {{ form.source }}
+                        {% if form.source.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.source.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.original_file.id_for_label }}" class="form-label">CSV File</label>
+                        {{ form.original_file }}
+                        {% if form.original_file.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.original_file.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Upload a CSV file with feedback data. Must include 'content' and 'rating' columns.</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Batch
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">CSV Format Guide</h6>
+            </div>
+            <div class="card-body">
+                <h5>Required Columns:</h5>
+                <ul>
+                    <li><strong>content</strong> - The text of the feedback</li>
+                    <li><strong>rating</strong> - Numeric rating (e.g., 1-5)</li>
+                </ul>
+                
+                <h5>Optional Columns:</h5>
+                <ul>
+                    <li><strong>customer_id</strong> - Identifier for the customer</li>
+                    <li><strong>feedback_date</strong> - When the feedback was given (YYYY-MM-DD format)</li>
+                </ul>
+                
+                <h5>Example:</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>content</th>
+                                <th>rating</th>
+                                <th>customer_id</th>
+                                <th>feedback_date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Great product, love it!</td>
+                                <td>5</td>
+                                <td>cust123</td>
+                                <td>2023-05-15</td>
+                            </tr>
+                            <tr>
+                                <td>App crashes frequently.</td>
+                                <td>2</td>
+                                <td>cust456</td>
+                                <td>2023-05-16</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <a href="#" class="btn btn-success btn-sm mt-3">
+                    <i class="fas fa-download me-2"></i>Download Sample CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

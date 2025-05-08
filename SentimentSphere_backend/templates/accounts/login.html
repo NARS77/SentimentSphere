@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SentimentSphere</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fc;
+        }
+        
+        .form-signin {
+            max-width: 430px;
+            padding: 15px;
+        }
+        
+        .form-signin .form-floating:focus-within {
+            z-index: 2;
+        }
+        
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            border-top-left-radius: 1rem !important;
+            border-top-right-radius: 1rem !important;
+            background-color: #4e73df;
+            color: white;
+        }
+        
+        .btn-primary {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2653d4;
+        }
+    </style>
+</head>
+<body>
+    <main class="form-signin w-100 m-auto">
+        <div class="card">
+            <div class="card-header py-3 text-center">
+                <h1 class="h3 mb-0 fw-bold">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    SentimentSphere
+                </h1>
+                <p class="mb-0 mt-2">Unlock the value of your feedback</p>
+            </div>
+            <div class="card-body p-4">
+                <h2 class="card-title text-center mb-4">Login</h2>
+                
+                {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    {% for message in messages %}
+                    {{ message }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-floating mb-3">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        {{ form.password }}
+                        <label for="{{ form.password.id_for_label }}">Password</label>
+                    </div>
+                    
+                    <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+                    
+                    <div class="text-center mt-4">
+                        <a href="/" class="text-decoration-none">Back to Home</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

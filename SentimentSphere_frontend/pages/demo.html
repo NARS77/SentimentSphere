@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Dashboard - SentimentSphere</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/styles.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="demo-dashboard d-flex">
+        <!-- Sidebar -->
+        <div class="demo-sidebar d-none d-md-flex flex-column flex-shrink-0 p-3 text-white" style="width: 280px;">
+            <a href="../index.html" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                <i class="fas fa-chart-pie me-2 fs-4"></i>
+                <span class="fs-4">SentimentSphere</span>
+            </a>
+            <hr>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active text-white" aria-current="page">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        <i class="fas fa-comments me-2"></i>
+                        Feedback
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        <i class="fas fa-layer-group me-2"></i>
+                        Batches
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload Data
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        <i class="fas fa-terminal me-2"></i>
+                        Prompts
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="nav-link text-white">
+                        <i class="fas fa-play-circle me-2"></i>
+                        Analysis Runs
+                    </a>
+                </li>
+            </ul>
+            <hr>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-user-circle me-2 fs-5"></i>
+                    <strong>Demo User</strong>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="../index.html">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-3 bg-light overflow-auto">
+            <!-- Top navbar for mobile -->
+            <nav class="navbar navbar-light bg-light d-md-none mb-3">
+                <div class="container-fluid">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">
+                        <i class="fas fa-chart-pie me-2"></i>SentimentSphere
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- Mobile sidebar menu -->
+            <div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="sidebarMenu">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title">
+                        <i class="fas fa-chart-pie me-2"></i>SentimentSphere
+                    </h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link active" aria-current="page">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-comments me-2"></i>
+                                Feedback
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-layer-group me-2"></i>
+                                Batches
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-upload me-2"></i>
+                                Upload Data
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-terminal me-2"></i>
+                                Prompts
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fas fa-play-circle me-2"></i>
+                                Analysis Runs
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Dashboard Content -->
+            <div class="container-fluid">
+                <!-- Page Heading -->
+                <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+                    <a href="../index.html" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                        <i class="fas fa-arrow-left fa-sm text-white-50 me-1"></i> Back to Homepage
+                    </a>
+                </div>
+                
+                <!-- Content Row -->
+                <div class="row">
+                    <!-- Total Feedback Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Total Feedback
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">143</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Positive Feedback Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-success shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Positive Feedback
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">55 (38%)</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-thumbs-up fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Negative Feedback Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-danger shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                            Negative Feedback
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">30 (21%)</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-thumbs-down fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Average Rating Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-warning shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Average Rating
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">4.2/5.0</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content Row -->
+                <div class="row">
+                    <!-- Sentiment Distribution Chart -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution</h6>
+                                <div class="dropdown no-arrow">
+                                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                        <div class="dropdown-header">Chart Options:</div>
+                                        <a class="dropdown-item" href="#">Last 7 Days</a>
+                                        <a class="dropdown-item" href="#">Last 30 Days</a>
+                                        <a class="dropdown-item" href="#">All Time</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Export as PNG</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-pie pt-4 pb-2">
+                                    <canvas id="sentimentDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback Over Time Chart -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Feedback Over Time</h6>
+                                <div class="dropdown no-arrow">
+                                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                        <div class="dropdown-header">Chart Options:</div>
+                                        <a class="dropdown-item" href="#">Last 7 Days</a>
+                                        <a class="dropdown-item" href="#">Last 30 Days</a>
+                                        <a class="dropdown-item" href="#">Last 3 Months</a>
+                                        <div class="dropdown-divider"></div>
+                                        <a class="dropdown-item" href="#">Export as PNG</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-area">
+                                    <canvas id="feedbackTimeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content Row -->
+                <div class="row">
+                    <!-- Source Distribution Chart -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Feedback Sources</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-bar">
+                                    <canvas id="sourceDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Keywords -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Top Keywords</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-success me-2">Positive</span>
+                                            <span class="fw-bold">Fast</span>
+                                            <span class="float-end badge bg-secondary">16</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-danger me-2">Negative</span>
+                                            <span class="fw-bold">Slow</span>
+                                            <span class="float-end badge bg-secondary">11</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-success me-2">Positive</span>
+                                            <span class="fw-bold">Intuitive</span>
+                                            <span class="float-end badge bg-secondary">9</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-danger me-2">Negative</span>
+                                            <span class="fw-bold">Crashes</span>
+                                            <span class="float-end badge bg-secondary">8</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-success me-2">Positive</span>
+                                            <span class="fw-bold">Easy</span>
+                                            <span class="float-end badge bg-secondary">7</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-danger me-2">Negative</span>
+                                            <span class="fw-bold">Complex</span>
+                                            <span class="float-end badge bg-secondary">6</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-primary me-2">Feature</span>
+                                            <span class="fw-bold">Dark mode</span>
+                                            <span class="float-end badge bg-secondary">5</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <div class="p-2 border rounded bg-light">
+                                            <span class="badge bg-warning me-2">Bug</span>
+                                            <span class="fw-bold">Login fails</span>
+                                            <span class="float-end badge bg-secondary">4</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Feedback Table -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Feedback</h6>
+                        <a href="#" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Category</th>
+                                        <th>Rating</th>
+                                        <th>Content</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Google Play</td>
+                                        <td><span class="badge bg-success">Positive</span></td>
+                                        <td>5/5</td>
+                                        <td>Great app! Very intuitive and fast. Love the new features in the latest update.</td>
+                                        <td>May 7, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>App Store</td>
+                                        <td><span class="badge bg-danger">Negative</span></td>
+                                        <td>2/5</td>
+                                        <td>App keeps crashing when I try to upload photos. Please fix this issue.</td>
+                                        <td>May 6, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Website</td>
+                                        <td><span class="badge bg-primary">Feature Request</span></td>
+                                        <td>4/5</td>
+                                        <td>Would love to see a dark mode option. Otherwise, it's a great service!</td>
+                                        <td>May 5, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Instagram</td>
+                                        <td><span class="badge bg-success">Positive</span></td>
+                                        <td>5/5</td>
+                                        <td>Your customer service team was extremely helpful with my issue. Thank you!</td>
+                                        <td>May 5, 2025</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Twitter</td>
+                                        <td><span class="badge bg-warning">Bug Report</span></td>
+                                        <td>3/5</td>
+                                        <td>The login page sometimes fails to load correctly on Safari. Otherwise good app.</td>
+                                        <td>May 4, 2025</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Demo Notice -->
+                <div class="alert alert-info mb-4">
+                    <h5><i class="fas fa-info-circle me-2"></i>Demo Dashboard</h5>
+                    <p class="mb-0">This is a demo of the SentimentSphere dashboard. The data shown is for demonstration purposes only. In a real implementation, this dashboard would display your actual customer feedback data analyzed by our AI.</p>
+                </div>
+                
+                <div class="text-center mb-4">
+                    <a href="../index.html#pricing" class="btn btn-primary">
+                        <i class="fas fa-tag me-2"></i>View Pricing Plans
+                    </a>
+                    <a href="../index.html#contact" class="btn btn-outline-primary ms-2">
+                        <i class="fas fa-envelope me-2"></i>Contact Sales
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="../js/scripts.js"></script>
+</body>
+</html>

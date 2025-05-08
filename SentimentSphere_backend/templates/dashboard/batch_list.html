@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Analyze Batch - SentimentSphere{% endblock %}
+
+{% block runs_active %}active{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Analyze Feedback Batch</h1>
+    <a href="{% url 'dashboard:batch_list' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Batches
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Batch Analysis Settings</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>Batch Information</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Batch Name:</div>
+                        <div class="col-md-9">{{ batch.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Source:</div>
+                        <div class="col-md-9">{{ batch.source.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Upload Date:</div>
+                        <div class="col-md-9">{{ batch.upload_date|date:"F d, Y H:i" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-3 fw-bold">Items:</div>
+                        <div class="col-md-9">{{ batch.total_items }}</div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h5>Select Analysis Prompt</h5>
+                        <div class="mb-3">
+                            <label for="{{ form.prompt.id_for_label }}" class="form-label">Prompt Template</label>
+                            {{ form.prompt }}
+                            {% if form.prompt.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prompt.errors.0 }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Select the prompt template to use for analyzing this feedback batch.</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Analysis will be performed using the OpenAI API and may take some time depending on the batch size.
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play-circle me-2"></i>Start Analysis
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">About Analysis</h6>
+            </div>
+            <div class="card-body">
+                <h5>What to Expect</h5>
+                <p>When you start the analysis:</p>
+                <ul>
+                    <li>Each feedback item will be processed using OpenAI's GPT model</li>
+                    <li>The system will categorize feedback into sentiment categories (Positive, Negative, Neutral, Feature Request, Bug Report)</li>
+                    <li>A sentiment score (-1 to 1) will be calculated for each item</li>
+                    <li>Progress can be monitored on the Analysis Runs page</li>
+                    <li>Results will be available for download once processing is complete</li>
+                </ul>
+                
+                <h5>Best Practices</h5>
+                <ul>
+                    <li>Use specific prompt templates for different types of feedback</li>
+                    <li>For large batches, expect processing to take some time</li>
+                    <li>The more clear and concise your prompt template, the better the results</li>
+                </ul>
+                
+                <a href="{% url 'analysis:prompt_list' %}" class="btn btn-secondary btn-sm mt-3">
+                    <i class="fas fa-terminal me-2"></i>Manage Prompts
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

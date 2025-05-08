@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load dashboard_filters %}
+
+{% block title %}Analysis Run - SentimentSphere{% endblock %}
+
+{% block runs_active %}active{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Analysis Run Details</h1>
+    <div>
+        <a href="{% url 'analysis:download_results' run.id %}" class="d-none d-sm-inline-block btn btn-success shadow-sm me-2">
+            <i class="fas fa-download fa-sm text-white-50 me-2"></i>Download Results
+        </a>
+        <a href="{% url 'analysis:run_list' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Runs
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Run Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Batch Name:</div>
+                    <div class="col-md-7">{{ run.batch.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Source:</div>
+                    <div class="col-md-7">{{ run.batch.source.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Prompt:</div>
+                    <div class="col-md-7">{{ run.prompt.name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Status:</div>
+                    <div class="col-md-7">
+                        {% if run.status == 'pending' %}
+                        <span class="badge bg-secondary">Pending</span>
+                        {% elif run.status == 'in_progress' %}
+                        <span class="badge bg-primary">In Progress</span>
+                        {% elif run.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                        {% elif run.status == 'failed' %}
+                        <span class="badge bg-danger">Failed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Started:</div>
+                    <div class="col-md-7">{{ run.started_at|date:"F d, Y H:i" }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Completed:</div>
+                    <div class="col-md-7">
+                        {% if run.completed_at %}
+                        {{ run.completed_at|date:"F d, Y H:i" }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Total Items:</div>
+                    <div class="col-md-7">{{ run.total_items }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Processed:</div>
+                    <div class="col-md-7">{{ run.processed_items }} ({{ run.progress_percentage }}%)</div>
+                </div>
+                {% if run.error_message %}
+                <div class="row mb-3">
+                    <div class="col-md-5 fw-bold">Error:</div>
+                    <div class="col-md-7 text-danger">{{ run.error_message }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="progress mb-4">
+                    <div class="progress-bar 
+                        {% if run.status == 'completed' %}bg-success
+                        {% elif run.status == 'failed' %}bg-danger
+                        {% else %}bg-primary{% endif %}" 
+                        role="progressbar" style="width: {{ run.progress_percentage }}%"
+                        aria-valuenow="{{ run.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ run.progress_percentage }}%
+                    </div>
+                </div>
+                
+                {% if run.status == 'in_progress' %}
+                <div class="text-center">
+                    <button id="refreshBtn" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Status
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Prompt Used</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary">
+                    <pre class="mb-0" style="white-space: pre-wrap;">{{ run.prompt.prompt_template }}</pre>
+                </div>
+                {% if run.prompt.description %}
+                <div class="mt-3">
+                    <strong>Description:</strong>
+                    <p>{{ run.prompt.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Results</h6>
+            </div>
+            <div class="card-body">
+                <!-- Sentiment Distribution Charts -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-pie pt-4 pb-2">
+                                    <canvas id="sentimentPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Sentiment Scores</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-bar">
+                                    <canvas id="sentimentScoreChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feedback Items Table -->
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Content</th>
+                                <th>Category</th>
+                                <th>Sentiment</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in feedback_items %}
+                            <tr>
+                                <td>{{ item.content|truncatechars:100 }}</td>
+                                <td>
+                                    {% if item.category %}
+                                    <span class="badge bg-{% if item.category.name == 'Positive' %}success{% elif item.category.name == 'Negative' %}danger{% elif item.category.name == 'Feature Request' %}primary{% elif item.category.name == 'Bug Report' %}warning{% else %}secondary{% endif %}">
+                                        {{ item.category.name }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Uncategorized</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.sentiment_score %}
+                                    <div class="progress">
+                                        <div class="progress-bar 
+                                            {% if item.sentiment_score > 0 %}bg-success
+                                            {% elif item.sentiment_score < 0 %}bg-danger
+                                            {% else %}bg-secondary{% endif %}" 
+                                            role="progressbar" 
+                                            style="width: {% if item.sentiment_score > 0 %}{{ item.sentiment_score|floatformat:2|slice:"2:" }}0{% elif item.sentiment_score < 0 %}{{ item.sentiment_score|floatformat:2|slice:"3:" }}0{% else %}50{% endif %}%">
+                                            {{ item.sentiment_score|floatformat:2 }}
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.rating }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center">No processed feedback items yet.</td>
