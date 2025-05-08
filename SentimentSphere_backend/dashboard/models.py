@@ -32,6 +32,8 @@ class FeedbackBatch(models.Model):
     processed = models.BooleanField(default=False)
     original_file = models.FileField(upload_to='feedback_batches/', blank=True, null=True)
     total_items = models.PositiveIntegerField(default=0)
+    keyword_data = models.TextField(blank=True, null=True)
+    avg_sentiment = models.FloatField(blank=True, null=True)
     
     def __str__(self):
         return f"{self.name} - {self.upload_date.strftime('%Y-%m-%d')}"

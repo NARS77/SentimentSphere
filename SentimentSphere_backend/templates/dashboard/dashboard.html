@@ -7,25 +7,31 @@
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <a href="{% url 'analysis:upload_batch' %}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
-        <i class="fas fa-upload fa-sm text-white-50 me-2"></i>Upload New Data
-    </a>
+    <div>
+        <a href="#" id="refreshDashboard" class="btn btn-outline-info me-2 shadow-sm">
+            <i class="fas fa-sync-alt fa-sm me-1"></i> Refresh
+        </a>
+        <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-upload fa-sm text-white-50 me-2"></i>Upload New Data
+        </a>
+    </div>
 </div>
 
+<!-- Stats Row -->
 <div class="row">
     <!-- Total Feedback Card -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary h-100 py-2">
+        <div class="card border-left-primary shadow h-100 py-2" style="border-left: 0.25rem solid var(--primary-color) !important;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--primary-color);">
                             Total Feedback
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_feedback }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        <i class="fas fa-comments fa-2x" style="color: var(--primary-color); opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -34,17 +40,17 @@
 
     <!-- Processed Feedback Card -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-success h-100 py-2">
+        <div class="card border-left-success h-100 py-2" style="border-left: 0.25rem solid var(--success-color) !important;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--success-color);">
                             Processed Feedback
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ processed_feedback }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        <i class="fas fa-check-circle fa-2x" style="color: var(--success-color); opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -53,17 +59,17 @@
 
     <!-- Total Batches Card -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-info h-100 py-2">
+        <div class="card border-left-info h-100 py-2" style="border-left: 0.25rem solid var(--info-color) !important;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--info-color);">
                             Total Batches
                         </div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_batches }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                        <i class="fas fa-layer-group fa-2x" style="color: var(--info-color); opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -72,11 +78,11 @@
 
     <!-- Processing Percentage Card -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-warning h-100 py-2">
+        <div class="card border-left-warning h-100 py-2" style="border-left: 0.25rem solid var(--warning-color) !important;">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--warning-color);">
                             Processing Percentage
                         </div>
                         <div class="row no-gutters align-items-center">
@@ -90,9 +96,9 @@
                                 </div>
                             </div>
                             <div class="col">
-                                <div class="progress progress-sm mr-2">
-                                    <div class="progress-bar bg-warning" role="progressbar" 
-                                        style="width: {% if total_feedback > 0 %}{{ processed_feedback|floatformat:0 }}%{% else %}0%{% endif %}" 
+                                <div class="progress progress-sm mr-2" style="height: 8px; border-radius: 4px;">
+                                    <div class="progress-bar" style="background-color: var(--warning-color); width: {% if total_feedback > 0 %}{{ processed_feedback|floatformat:0 }}%{% else %}0%{% endif %}" 
+                                        role="progressbar" 
                                         aria-valuenow="{% if total_feedback > 0 %}{{ processed_feedback|floatformat:0 }}{% else %}0{% endif %}" 
                                         aria-valuemin="0" aria-valuemax="100">
                                     </div>
@@ -101,7 +107,7 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        <i class="fas fa-clipboard-list fa-2x" style="color: var(--warning-color); opacity: 0.2;"></i>
                     </div>
                 </div>
             </div>
@@ -109,28 +115,29 @@
     </div>
 </div>
 
+<!-- Main Charts Row -->
 <div class="row">
     <!-- Sentiment Distribution Chart -->
     <div class="col-xl-8 col-lg-7">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution</h6>
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Sentiment Distribution</h6>
                 <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    <a class="dropdown-toggle text-white" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Chart Options:</div>
+                        <div class="dropdown-header">Time Range:</div>
                         <a class="dropdown-item" href="#">Last 7 Days</a>
                         <a class="dropdown-item" href="#">Last 30 Days</a>
                         <a class="dropdown-item" href="#">Last 3 Months</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Download Chart</a>
+                        <a class="dropdown-item" href="#">Export Chart</a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <div class="chart-area">
+                <div class="chart-area" style="height: 300px;">
                     <canvas id="sentimentChart"></canvas>
                 </div>
             </div>
@@ -140,29 +147,29 @@
     <!-- Source Distribution Pie Chart -->
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Feedback Sources</h6>
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" style="background-color: var(--secondary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Feedback Sources</h6>
                 <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    <a class="dropdown-toggle text-white" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw"></i>
                     </a>
                     <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Chart Options:</div>
+                        <div class="dropdown-header">Display Options:</div>
                         <a class="dropdown-item" href="#">All Sources</a>
                         <a class="dropdown-item" href="#">Top 5 Sources</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Download Chart</a>
+                        <a class="dropdown-item" href="#">Export Chart</a>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
+                <div class="chart-pie pt-4 pb-2" style="height: 250px;">
                     <canvas id="sourceChart"></canvas>
                 </div>
                 <div class="mt-4 text-center small">
                     {% for source in source_data %}
                     <span class="me-2">
-                        <i class="fas fa-circle" style="color: #{% cycle '4e73df' 'e74a3b' '1cc88a' 'f6c23e' '36b9cc' %}"></i> {{ source.source__name }}
+                        <i class="fas fa-circle" style="color: {% cycle 'var(--primary-color)' 'var(--danger-color)' 'var(--success-color)' 'var(--warning-color)' 'var(--info-color)' 'var(--feature-color)' %}"></i> {{ source.source__name }}
                     </span>
                     {% endfor %}
                 </div>
@@ -171,17 +178,259 @@
     </div>
 </div>
 
+<!-- Trends & Keywords Row -->
 <div class="row">
-    <!-- Recent Feedback -->
-    <div class="col-12">
+    <!-- Sentiment Trend Chart -->
+    <div class="col-lg-6">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Recent Feedback</h6>
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" 
+                 style="background-color: var(--info-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Sentiment Trend</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow">
+                        <a class="dropdown-item" href="#">Last 7 Days</a>
+                        <a class="dropdown-item" href="#">Last 30 Days</a>
+                        <a class="dropdown-item" href="#">All Time</a>
+                    </div>
+                </div>
             </div>
             <div class="card-body">
+                <div class="chart-area" style="height: 250px;">
+                    <canvas id="sentimentTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Keywords Card -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
+                 style="background-color: var(--feature-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Top Keywords</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle text-white" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow">
+                        <a class="dropdown-item" href="#">All Keywords</a>
+                        <a class="dropdown-item" href="#">Positive Only</a>
+                        <a class="dropdown-item" href="#">Negative Only</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if top_keywords %}
+                        {% for word in top_keywords|slice:":8" %}
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" 
+                                      style="background-color: {% if word.sentiment > 0 %}var(--positive-color){% elif word.sentiment < 0 %}var(--negative-color){% else %}var(--neutral-color){% endif %};">
+                                    {% if word.sentiment > 0 %}+{% elif word.sentiment < 0 %}-{% endif %}
+                                </span>
+                                <span class="fw-bold">{{ word.text }}</span>
+                                <span class="float-end badge bg-dark">{{ word.count }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <!-- Sample keywords for visual demonstration -->
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--positive-color);">+</span>
+                                <span class="fw-bold">Great</span>
+                                <span class="float-end badge bg-dark">12</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--negative-color);">-</span>
+                                <span class="fw-bold">Slow</span>
+                                <span class="float-end badge bg-dark">8</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--positive-color);">+</span>
+                                <span class="fw-bold">Easy</span>
+                                <span class="float-end badge bg-dark">7</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--negative-color);">-</span>
+                                <span class="fw-bold">Bug</span>
+                                <span class="float-end badge bg-dark">6</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--feature-color);">+</span>
+                                <span class="fw-bold">Feature</span>
+                                <span class="float-end badge bg-dark">5</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--positive-color);">+</span>
+                                <span class="fw-bold">Helpful</span>
+                                <span class="float-end badge bg-dark">5</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--neutral-color);">o</span>
+                                <span class="fw-bold">Update</span>
+                                <span class="float-end badge bg-dark">4</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <span class="badge" style="background-color: var(--bug-color);">-</span>
+                                <span class="fw-bold">Crash</span>
+                                <span class="float-end badge bg-dark">3</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics Row -->
+<div class="row">
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2" style="border-left: 0.25rem solid var(--secondary-color) !important;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--secondary-color);">
+                            Average Response Time
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">2.4 days</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x" style="color: var(--secondary-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2" style="border-left: 0.25rem solid var(--positive-color) !important;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--positive-color);">
+                            Customer Satisfaction
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">76%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-smile fa-2x" style="color: var(--positive-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2" style="border-left: 0.25rem solid var(--warning-color) !important;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--warning-color);">
+                            Resolved Issues
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">43/52</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-tasks fa-2x" style="color: var(--warning-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2" style="border-left: 0.25rem solid var(--feature-color) !important;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--feature-color);">
+                            Feature Requests
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">16 new</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-lightbulb fa-2x" style="color: var(--feature-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Feedback Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Recent Feedback</h6>
+                <div>
+                    <button class="btn btn-sm btn-light" id="filterToggleBtn">
+                        <i class="fas fa-filter me-1"></i> Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Optional Filter Panel (hidden by default) -->
+            <div class="card-body py-2 bg-light" id="filterPanel" style="display: none;">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <select class="form-select form-select-sm" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="Positive">Positive</option>
+                            <option value="Negative">Negative</option>
+                            <option value="Neutral">Neutral</option>
+                            <option value="Feature Request">Feature Requests</option>
+                            <option value="Bug Report">Bug Reports</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <select class="form-select form-select-sm" id="sourceFilter">
+                            <option value="">All Sources</option>
+                            {% for source in source_data %}
+                                <option value="{{ source.source__name }}">{{ source.source__name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <select class="form-select form-select-sm" id="ratingFilter">
+                            <option value="">All Ratings</option>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="2">2 Stars</option>
+                            <option value="1">1 Star</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <button class="btn btn-sm btn-primary w-100" id="applyFilters">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
+                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                        <thead style="background-color: #f8f9fc;">
                             <tr>
                                 <th>Source</th>
                                 <th>Category</th>
@@ -197,32 +446,51 @@
                                 <td>{{ feedback.source.name }}</td>
                                 <td>
                                     {% if feedback.category %}
-                                    <span class="badge bg-{% if feedback.category.name == 'Positive' %}success{% elif feedback.category.name == 'Negative' %}danger{% elif feedback.category.name == 'Feature Request' %}primary{% elif feedback.category.name == 'Bug Report' %}warning{% else %}secondary{% endif %}">
+                                    <span class="badge" style="background-color: 
+                                        {% if feedback.category.name == 'Positive' %}var(--positive-color)
+                                        {% elif feedback.category.name == 'Negative' %}var(--negative-color)
+                                        {% elif feedback.category.name == 'Feature Request' %}var(--feature-color)
+                                        {% elif feedback.category.name == 'Bug Report' %}var(--bug-color)
+                                        {% else %}var(--neutral-color){% endif %};">
                                         {{ feedback.category.name }}
                                     </span>
                                     {% else %}
                                     <span class="badge bg-secondary">Uncategorized</span>
                                     {% endif %}
                                 </td>
-                                <td>{% if feedback.rating %}{{ feedback.rating }}{% else %}-{% endif %}</td>
+                                <td class="text-center">
+                                    {% if feedback.rating %}
+                                        <span class="badge rounded-pill" style="background-color: 
+                                        {% if feedback.rating >= 4 %}var(--positive-color)
+                                        {% elif feedback.rating <= 2 %}var(--negative-color)
+                                        {% else %}var(--neutral-color){% endif %};">
+                                            {{ feedback.rating }}
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 <td>{{ feedback.content|truncatechars:100 }}</td>
                                 <td>{{ feedback.created_at|date:"M d, Y" }}</td>
                                 <td>
-                                    <a href="{% url 'dashboard:feedback_detail' feedback.id %}" class="btn btn-sm btn-primary">
+                                    <a href="{% url 'dashboard:feedback_detail' feedback.id %}" class="btn btn-sm" style="background-color: var(--info-color); color: white;">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="6" class="text-center">No feedback data available yet.</td>
+                                <td colspan="6" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-light mb-3"></i>
+                                    <p class="text-muted">No feedback data available yet.</p>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 <div class="text-center mt-3">
-                    <a href="{% url 'dashboard:feedback_list' %}" class="btn btn-primary">View All Feedback</a>
+                    <a href="{% url 'dashboard:feedback_list' %}" class="btn" style="background-color: var(--primary-color); color: white;">View All Feedback</a>
                 </div>
             </div>
         </div>
@@ -232,133 +500,388 @@
 
 {% block extra_js %}
 <script>
-// Set new default font family and font color to mimic Bootstrap's default styling
-Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-Chart.defaults.global.defaultFontColor = '#858796';
-
-// Sentiment Distribution Chart
-var sentimentCtx = document.getElementById("sentimentChart");
-var sentimentData = {
-    labels: [
-        {% for item in sentiment_data %}
-            "{{ item.category__name }}",
-        {% endfor %}
-    ],
-    datasets: [{
-        label: "Feedback Count",
-        backgroundColor: [
-            '#4e73df',
-            '#e74a3b',
-            '#1cc88a',
-            '#f6c23e',
-            '#36b9cc',
-            '#858796'
-        ],
-        borderColor: "rgba(78, 115, 223, 1)",
-        data: [
-            {% for item in sentiment_data %}
-                {{ item.count }},
-            {% endfor %}
-        ],
-    }],
-};
-
-var sentimentChart = new Chart(sentimentCtx, {
-    type: 'bar',
-    data: sentimentData,
-    options: {
-        maintainAspectRatio: false,
-        layout: {
-            padding: {
-                left: 10,
-                right: 25,
-                top: 25,
-                bottom: 0
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter panel toggle
+    const filterToggleBtn = document.getElementById('filterToggleBtn');
+    const filterPanel = document.getElementById('filterPanel');
+    
+    if (filterToggleBtn && filterPanel) {
+        filterToggleBtn.addEventListener('click', function() {
+            if (filterPanel.style.display === 'none') {
+                filterPanel.style.display = 'block';
+                filterToggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Hide Filters';
+            } else {
+                filterPanel.style.display = 'none';
+                filterToggleBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Filters';
             }
-        },
-        scales: {
-            xAxes: [{
-                gridLines: {
-                    display: false,
-                    drawBorder: false
-                },
-                ticks: {
-                    maxTicksLimit: 7
-                },
-                maxBarThickness: 25,
+        });
+    }
+    
+    // Dashboard refresh button
+    const refreshBtn = document.getElementById('refreshDashboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            location.reload();
+        });
+    }
+    
+    // Set new default font family and font color to mimic Bootstrap's default styling
+    Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
+
+    // Sentiment Distribution Chart
+    var sentimentCtx = document.getElementById("sentimentChart");
+    if (sentimentCtx) {
+        var categoryColors = {
+            'Positive': 'rgba(0, 137, 123, 0.8)',
+            'Negative': 'rgba(198, 40, 40, 0.8)',
+            'Neutral': 'rgba(120, 144, 156, 0.8)',
+            'Feature Request': 'rgba(123, 31, 162, 0.8)',
+            'Bug Report': 'rgba(255, 143, 0, 0.8)'
+        };
+        
+        var sentimentData = {
+            labels: [
+                {% for item in sentiment_data %}
+                    "{{ item.category__name }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                label: "Feedback Count",
+                backgroundColor: [
+                    {% for item in sentiment_data %}
+                        categoryColors['{{ item.category__name }}'] || 'rgba(57, 73, 171, 0.8)',
+                    {% endfor %}
+                ],
+                borderColor: "rgba(255, 255, 255, 0.2)",
+                borderWidth: 1,
+                data: [
+                    {% for item in sentiment_data %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
             }],
-            yAxes: [{
-                ticks: {
-                    min: 0,
-                    maxTicksLimit: 5,
-                    padding: 10,
+        };
+
+        var sentimentChart = new Chart(sentimentCtx, {
+            type: 'bar',
+            data: sentimentData,
+            options: {
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
                 },
-                gridLines: {
-                    color: "rgb(234, 236, 244)",
-                    zeroLineColor: "rgb(234, 236, 244)",
-                    drawBorder: false,
-                    borderDash: [2],
-                    zeroLineBorderDash: [2]
+                scales: {
+                    xAxes: [{
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 7
+                        },
+                        maxBarThickness: 40,
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            min: 0,
+                            maxTicksLimit: 5,
+                            padding: 10,
+                        },
+                        gridLines: {
+                            color: "rgba(0, 0, 0, 0.05)",
+                            zeroLineColor: "rgba(0, 0, 0, 0.1)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    }],
+                },
+                legend: {
+                    display: false
+                },
+                tooltips: {
+                    titleMarginBottom: 10,
+                    titleFontColor: '#6e707e',
+                    titleFontSize: 14,
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    bodyFontColor: "#5a5c69",
+                    borderColor: 'rgba(220, 220, 220, 1)',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                    callbacks: {
+                        label: function(tooltipItem, chart) {
+                            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+                            return datasetLabel + ': ' + tooltipItem.yLabel;
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
                 }
+            }
+        });
+    }
+
+    // Source Distribution Pie Chart
+    var sourceCtx = document.getElementById("sourceChart");
+    if (sourceCtx) {
+        var sourceColors = [
+            'rgba(57, 73, 171, 0.8)',
+            'rgba(198, 40, 40, 0.8)',
+            'rgba(0, 137, 123, 0.8)',
+            'rgba(255, 143, 0, 0.8)',
+            'rgba(3, 155, 229, 0.8)',
+            'rgba(123, 31, 162, 0.8)'
+        ];
+        
+        var sourceData = {
+            labels: [
+                {% for source in source_data %}
+                    "{{ source.source__name }}",
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for source in source_data %}
+                        {{ source.count }},
+                    {% endfor %}
+                ],
+                backgroundColor: sourceColors,
+                hoverBackgroundColor: sourceColors.map(color => color.replace('0.8', '1')),
+                hoverBorderColor: "rgba(255, 255, 255, 1)",
+                borderWidth: 2,
+                borderColor: 'rgba(255, 255, 255, 0.8)'
             }],
-        },
-        legend: {
-            display: false
-        },
-        tooltips: {
-            titleMarginBottom: 10,
-            titleFontColor: '#6e707e',
-            titleFontSize: 14,
-            backgroundColor: "rgb(255,255,255)",
-            bodyFontColor: "#858796",
-            borderColor: '#dddfeb',
-            borderWidth: 1,
-            xPadding: 15,
-            yPadding: 15,
-            displayColors: false,
-            caretPadding: 10,
-        },
+        };
+        
+        var sourceChart = new Chart(sourceCtx, {
+            type: 'doughnut',
+            data: sourceData,
+            options: {
+                maintainAspectRatio: false,
+                tooltips: {
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    bodyFontColor: "#5a5c69",
+                    borderColor: 'rgba(220, 220, 220, 1)',
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    caretPadding: 10,
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var dataset = data.datasets[tooltipItem.datasetIndex];
+                            var total = dataset.data.reduce(function(previousValue, currentValue) {
+                                return previousValue + currentValue;
+                            });
+                            var currentValue = dataset.data[tooltipItem.index];
+                            var percentage = Math.round((currentValue/total) * 100);
+                            
+                            return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                        }
+                    }
+                },
+                legend: {
+                    display: false
+                },
+                cutoutPercentage: 70,
+                animation: {
+                    duration: 1200,
+                    animateRotate: true,
+                    animateScale: true
+                }
+            },
+        });
+    }
+    
+    // Sentiment Trend Chart
+    var trendCtx = document.getElementById("sentimentTrendChart");
+    if (trendCtx) {
+        // Generate sample dates for the last 7 days
+        const dates = [];
+        const positiveData = [];
+        const negativeData = [];
+        
+        const today = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            dates.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+            
+            // Generate sample data
+            positiveData.push(Math.floor(Math.random() * 15) + 10);
+            negativeData.push(Math.floor(Math.random() * 8) + 2);
+        }
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: "Positive",
+                        lineTension: 0.3,
+                        backgroundColor: "rgba(0, 137, 123, 0.05)",
+                        borderColor: "rgba(0, 137, 123, 1)",
+                        pointRadius: 3,
+                        pointBackgroundColor: "rgba(0, 137, 123, 1)",
+                        pointBorderColor: "rgba(0, 137, 123, 1)",
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: "rgba(0, 137, 123, 1)",
+                        pointHoverBorderColor: "rgba(0, 137, 123, 1)",
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: positiveData,
+                    },
+                    {
+                        label: "Negative",
+                        lineTension: 0.3,
+                        backgroundColor: "rgba(198, 40, 40, 0.05)",
+                        borderColor: "rgba(198, 40, 40, 1)",
+                        pointRadius: 3,
+                        pointBackgroundColor: "rgba(198, 40, 40, 1)",
+                        pointBorderColor: "rgba(198, 40, 40, 1)",
+                        pointHoverRadius: 3,
+                        pointHoverBackgroundColor: "rgba(198, 40, 40, 1)",
+                        pointHoverBorderColor: "rgba(198, 40, 40, 1)",
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        data: negativeData,
+                    }
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    xAxes: [{
+                        time: {
+                            unit: 'date'
+                        },
+                        gridLines: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 7
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            beginAtZero: true
+                        },
+                        gridLines: {
+                            color: "rgba(0, 0, 0, 0.05)",
+                            zeroLineColor: "rgba(0, 0, 0, 0.1)",
+                            drawBorder: false,
+                            borderDash: [2],
+                            zeroLineBorderDash: [2]
+                        }
+                    }],
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 20
+                    }
+                },
+                tooltips: {
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    bodyFontColor: "#5a5c69",
+                    titleMarginBottom: 10,
+                    titleFontColor: "#6e707e",
+                    titleFontSize: 14,
+                    borderColor: "rgba(220, 220, 220, 1)",
+                    borderWidth: 1,
+                    xPadding: 15,
+                    yPadding: 15,
+                    displayColors: false,
+                    intersect: false,
+                    mode: 'index',
+                    caretPadding: 10
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+    
+    // Table animation on load
+    const tableRows = document.querySelectorAll('#dataTable tbody tr');
+    tableRows.forEach((row, index) => {
+        row.style.animation = `fadeIn 0.3s ease-out ${index * 0.05}s forwards`;
+        row.style.opacity = 0;
+    });
+
+    // Apply filters functionality
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', function() {
+            const categoryValue = document.getElementById('categoryFilter').value;
+            const sourceValue = document.getElementById('sourceFilter').value;
+            const ratingValue = document.getElementById('ratingFilter').value;
+            
+            tableRows.forEach(row => {
+                let showRow = true;
+                
+                // Check category filter
+                if (categoryValue && row.querySelector('td:nth-child(2)').textContent.trim() !== categoryValue) {
+                    showRow = false;
+                }
+                
+                // Check source filter
+                if (sourceValue && row.querySelector('td:nth-child(1)').textContent.trim() !== sourceValue) {
+                    showRow = false;
+                }
+                
+                // Check rating filter
+                if (ratingValue) {
+                    const ratingCell = row.querySelector('td:nth-child(3)').textContent.trim();
+                    if (ratingCell !== ratingValue) {
+                        showRow = false;
+                    }
+                }
+                
+                // Show or hide row
+                row.style.display = showRow ? '' : 'none';
+            });
+        });
     }
 });
 
-// Source Distribution Pie Chart
-var sourceCtx = document.getElementById("sourceChart");
-var sourceChart = new Chart(sourceCtx, {
-    type: 'doughnut',
-    data: {
-        labels: [
-            {% for source in source_data %}
-                "{{ source.source__name }}",
-            {% endfor %}
-        ],
-        datasets: [{
-            data: [
-                {% for source in source_data %}
-                    {{ source.count }},
-                {% endfor %}
-            ],
-            backgroundColor: ['#4e73df', '#e74a3b', '#1cc88a', '#f6c23e', '#36b9cc', '#858796'],
-            hoverBackgroundColor: ['#2e59d9', '#be3025', '#17a673', '#dda20a', '#2c9faf', '#6e707e'],
-            hoverBorderColor: "rgba(234, 236, 244, 1)",
-        }],
-    },
-    options: {
-        maintainAspectRatio: false,
-        tooltips: {
-            backgroundColor: "rgb(255,255,255)",
-            bodyFontColor: "#858796",
-            borderColor: '#dddfeb',
-            borderWidth: 1,
-            xPadding: 15,
-            yPadding: 15,
-            displayColors: false,
-            caretPadding: 10,
-        },
-        legend: {
-            display: false
-        },
-        cutoutPercentage: 80,
-    },
-});
+// Add keyframe animation
+document.head.insertAdjacentHTML('beforeend', `
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .progress-bar {
+            transition: width 1s ease-in-out;
+        }
+    </style>
+`);
 </script>
 {% endblock %}

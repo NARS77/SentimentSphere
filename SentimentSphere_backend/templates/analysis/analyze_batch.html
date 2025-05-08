@@ -14,20 +14,50 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Batch Analysis Settings</h6>
+        <div class="card shadow mb-4 border-left-primary">
+            <div class="card-header py-3" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Batch Analysis Settings</h6>
             </div>
             <div class="card-body">
+                <!-- Progress Steps -->
                 <div class="mb-4">
-                    <h5>Batch Information</h5>
-                    <div class="row mb-3">
+                    <div class="d-flex justify-content-between position-relative mb-4">
+                        <div class="step text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="step-label mt-2">Upload</div>
+                        </div>
+                        <div class="step active text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="step-label mt-2">Process</div>
+                        </div>
+                        <div class="step text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="step-label mt-2">Results</div>
+                        </div>
+                        
+                        <!-- Connecting Lines -->
+                        <div class="step-line"></div>
+                    </div>
+                </div>
+                
+                <!-- Batch Information Panel -->
+                <div class="mb-4">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-info-circle me-2" style="color: var(--info-color);"></i>Batch Information</h5>
+                    <div class="row mb-3 mt-4">
                         <div class="col-md-3 fw-bold">Batch Name:</div>
                         <div class="col-md-9">{{ batch.name }}</div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-3 fw-bold">Source:</div>
-                        <div class="col-md-9">{{ batch.source.name }}</div>
+                        <div class="col-md-9">
+                            <span class="badge rounded-pill" style="background-color: var(--info-color);">{{ batch.source.name }}</span>
+                        </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-3 fw-bold">Upload Date:</div>
@@ -35,18 +65,32 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-3 fw-bold">Items:</div>
-                        <div class="col-md-9">{{ batch.total_items }}</div>
+                        <div class="col-md-9">
+                            <span class="badge bg-primary rounded-pill">{{ batch.total_items }} items</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 fw-bold">Status:</div>
+                        <div class="col-md-9">
+                            {% if batch.processed %}
+                                <span class="badge bg-success">Processed</span>
+                            {% else %}
+                                <span class="badge bg-warning">Not Processed</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 
                 <hr>
                 
-                <form method="post">
+                <!-- Analysis Form -->
+                <form method="post" id="analysisForm">
                     {% csrf_token %}
                     
                     <div class="mb-4">
-                        <h5>Select Analysis Prompt</h5>
-                        <div class="mb-3">
+                        <h5 class="border-bottom pb-2"><i class="fas fa-brain me-2" style="color: var(--feature-color);"></i>Select Analysis Prompt</h5>
+                        
+                        <div class="mb-3 mt-4">
                             <label for="{{ form.prompt.id_for_label }}" class="form-label">Prompt Template</label>
                             {{ form.prompt }}
                             {% if form.prompt.errors %}
@@ -57,14 +101,81 @@
                             <div class="form-text">Select the prompt template to use for analyzing this feedback batch.</div>
                         </div>
                         
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Analysis will be performed using the OpenAI API and may take some time depending on the batch size.
+                        <!-- Prompt Preview Panel -->
+                        <div class="bg-light p-3 rounded mt-3 mb-3" id="promptPreviewPanel" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0"><i class="fas fa-eye me-2"></i>Prompt Preview</h6>
+                                <button type="button" class="btn-close small" id="closePromptPreview"></button>
+                            </div>
+                            <div class="border rounded p-3 bg-white">
+                                <div id="promptPreviewContent" class="small" style="white-space: pre-wrap;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading mb-1">Processing Information</h6>
+                                <p class="mb-0">Analysis will be performed using TextBlob for sentiment analysis. The process includes text classification, sentiment scoring, and keyword extraction.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Processing Options -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2"><i class="fas fa-sliders-h me-2" style="color: var(--warning-color);"></i>Processing Options</h5>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="extractKeywords" name="extract_keywords" checked>
+                                    <label class="form-check-label" for="extractKeywords">Extract Keywords</label>
+                                </div>
+                                <div class="form-text">Identify and extract significant words and phrases from feedback.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="calculateSentiment" name="calculate_sentiment" checked>
+                                    <label class="form-check-label" for="calculateSentiment">Calculate Sentiment</label>
+                                </div>
+                                <div class="form-text">Determine sentiment scores and emotional tone of feedback.</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="categorizeThemes" name="categorize_themes" checked>
+                                    <label class="form-check-label" for="categorizeThemes">Categorize Themes</label>
+                                </div>
+                                <div class="form-text">Classify feedback into predefined categories.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="prioritizeItems" name="prioritize_items">
+                                    <label class="form-check-label" for="prioritizeItems">Prioritize Items</label>
+                                </div>
+                                <div class="form-text">Assign priority levels based on sentiment and content.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Estimated Time -->
+                    <div class="alert alert-warning d-flex mb-4">
+                        <div class="me-3">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div>
+                            <h6 class="alert-heading mb-1">Estimated Processing Time</h6>
+                            <p class="mb-0">With <strong>{{ batch.total_items }} items</strong>, this analysis should take approximately 
+                            <strong id="estimatedTime">{{ batch.total_items|divisibleby:5 }}</strong> seconds.</p>
                         </div>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">
+                        <a href="{% url 'dashboard:batch_detail' batch.id %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="startAnalysisBtn">
                             <i class="fas fa-play-circle me-2"></i>Start Analysis
                         </button>
                     </div>
@@ -74,33 +185,226 @@
     </div>
     
     <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">About Analysis</h6>
+        <!-- About Analysis Card -->
+        <div class="card shadow mb-4 border-left-info">
+            <div class="card-header py-3" style="background-color: var(--info-color); color: white;">
+                <h6 class="m-0 font-weight-bold">About Analysis</h6>
             </div>
             <div class="card-body">
-                <h5>What to Expect</h5>
-                <p>When you start the analysis:</p>
-                <ul>
-                    <li>Each feedback item will be processed using OpenAI's GPT model</li>
-                    <li>The system will categorize feedback into sentiment categories (Positive, Negative, Neutral, Feature Request, Bug Report)</li>
-                    <li>A sentiment score (-1 to 1) will be calculated for each item</li>
-                    <li>Progress can be monitored on the Analysis Runs page</li>
-                    <li>Results will be available for download once processing is complete</li>
+                <h5 class="border-bottom pb-2"><i class="fas fa-question-circle me-2" style="color: var(--info-color);"></i>What to Expect</h5>
+                <p class="mt-3">When you start the analysis:</p>
+                <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>Each feedback item will be processed using TextBlob
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>The system will categorize feedback into sentiment categories
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>A sentiment score (-1 to 1) will be calculated for each item
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>Progress can be monitored on the Analysis Runs page
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-check-circle text-success me-2"></i>Results will be available for download once processing is complete
+                    </li>
                 </ul>
                 
-                <h5>Best Practices</h5>
-                <ul>
-                    <li>Use specific prompt templates for different types of feedback</li>
-                    <li>For large batches, expect processing to take some time</li>
-                    <li>The more clear and concise your prompt template, the better the results</li>
+                <h5 class="border-bottom pb-2"><i class="fas fa-lightbulb me-2" style="color: var(--warning-color);"></i>Best Practices</h5>
+                <ul class="list-group list-group-flush mb-4 mt-3">
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-star text-warning me-2"></i>Use specific prompt templates for different types of feedback
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-star text-warning me-2"></i>For large batches, expect processing to take some time
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-star text-warning me-2"></i>The more clear and concise your prompt template, the better the results
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 py-1 border-0">
+                        <i class="fas fa-star text-warning me-2"></i>Review analysis results and adjust your prompts for future runs
+                    </li>
                 </ul>
                 
-                <a href="{% url 'analysis:prompt_list' %}" class="btn btn-secondary btn-sm mt-3">
-                    <i class="fas fa-terminal me-2"></i>Manage Prompts
-                </a>
+                <div class="d-grid">
+                    <a href="{% url 'analysis:prompt_list' %}" class="btn btn-info">
+                        <i class="fas fa-terminal me-2"></i>Manage Prompts
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Runs Card -->
+        <div class="card shadow mb-4 border-left-secondary">
+            <div class="card-header py-3" style="background-color: var(--secondary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Recent Analysis Runs</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for run in recent_runs|slice:":5" %}
+                    <a href="{% url 'analysis:run_detail' run.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ run.batch.name }}</h6>
+                                <small>
+                                    <span class="badge bg-{% if run.status == 'completed' %}success{% elif run.status == 'failed' %}danger{% elif run.status == 'in_progress' %}primary{% else %}secondary{% endif %}">
+                                        {{ run.status|title }}
+                                    </span>
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ run.started_at|date:"M d, Y" }}</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-center py-4">
+                        <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                        <p class="mb-0 text-muted">No recent analysis runs</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_runs %}
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'analysis:run_list' %}" class="text-primary">
+                        View All Runs <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Add styling for progress steps -->
+<style>
+    .step {
+        position: relative;
+        z-index: 1;
+        width: 60px;
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background-color: #f8f9fc;
+        border: 2px solid #d1d3e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #d1d3e2;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-icon {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 0 10px rgba(78, 115, 223, 0.4);
+    }
+    
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .step.active .step-label {
+        color: var(--primary-color);
+    }
+    
+    .step-line {
+        position: absolute;
+        top: 25px;
+        left: 80px;
+        right: 80px;
+        height: 2px;
+        background-color: #d1d3e2;
+        z-index: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Calculate estimated time based on batch size
+        const totalItems = {{ batch.total_items }};
+        const estimatedTime = document.getElementById('estimatedTime');
+        
+        // Simple formula: 1 second per item + 5 seconds base time
+        const calculatedTime = totalItems + 5;
+        
+        // Format time for display
+        let timeText;
+        if (calculatedTime < 60) {
+            timeText = `${calculatedTime} seconds`;
+        } else if (calculatedTime < 3600) {
+            const minutes = Math.floor(calculatedTime / 60);
+            const seconds = calculatedTime % 60;
+            timeText = `${minutes} minute${minutes > 1 ? 's' : ''}${seconds > 0 ? ` and ${seconds} second${seconds > 1 ? 's' : ''}` : ''}`;
+        } else {
+            const hours = Math.floor(calculatedTime / 3600);
+            const minutes = Math.floor((calculatedTime % 3600) / 60);
+            timeText = `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` and ${minutes} minute${minutes > 1 ? 's' : ''}` : ''}`;
+        }
+        
+        if (estimatedTime) {
+            estimatedTime.textContent = timeText;
+        }
+        
+        // Prompt preview functionality
+        const promptSelect = document.getElementById('{{ form.prompt.id_for_label }}');
+        const promptPreviewPanel = document.getElementById('promptPreviewPanel');
+        const promptPreviewContent = document.getElementById('promptPreviewContent');
+        const closePromptPreview = document.getElementById('closePromptPreview');
+        
+        if (promptSelect && promptPreviewPanel && promptPreviewContent) {
+            // Store prompt templates
+            const promptTemplates = {
+                {% for prompt in form.prompt.field.queryset %}
+                "{{ prompt.id }}": `{{ prompt.prompt_template|escapejs }}`,
+                {% endfor %}
+            };
+            
+            // Show prompt preview when selection changes
+            promptSelect.addEventListener('change', function() {
+                const selectedPromptId = this.value;
+                if (selectedPromptId && promptTemplates[selectedPromptId]) {
+                    promptPreviewContent.textContent = promptTemplates[selectedPromptId];
+                    promptPreviewPanel.style.display = 'block';
+                } else {
+                    promptPreviewPanel.style.display = 'none';
+                }
+            });
+            
+            // Show prompt preview for initial selection
+            if (promptSelect.value && promptTemplates[promptSelect.value]) {
+                promptPreviewContent.textContent = promptTemplates[promptSelect.value];
+                promptPreviewPanel.style.display = 'block';
+            }
+            
+            // Close preview button
+            if (closePromptPreview) {
+                closePromptPreview.addEventListener('click', function() {
+                    promptPreviewPanel.style.display = 'none';
+                });
+            }
+        }
+        
+        // Form submit handling
+        const analysisForm = document.getElementById('analysisForm');
+        const startAnalysisBtn = document.getElementById('startAnalysisBtn');
+        
+        if (analysisForm && startAnalysisBtn) {
+            analysisForm.addEventListener('submit', function() {
+                startAnalysisBtn.disabled = true;
+                startAnalysisBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Starting Analysis...';
+                showLoading(); // This uses the loading overlay defined in base.html
+            });
+        }
+    });
+</script>
 {% endblock %}

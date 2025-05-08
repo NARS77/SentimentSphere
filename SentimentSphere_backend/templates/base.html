@@ -1,187 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SentimentSphere{% endblock %}</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #4e73df;
-            --secondary-color: #6c757d;
-            --success-color: #1cc88a;
-            --info-color: #36b9cc;
-            --warning-color: #f6c23e;
-            --danger-color: #e74a3b;
-            --light-color: #f8f9fc;
-            --dark-color: #5a5c69;
+            --primary-color: #3949ab;      /* Deep indigo blue */
+            --secondary-color: #5e35b1;    /* Deep purple */
+            --success-color: #2e7d32;      /* Green */
+            --info-color: #0288d1;         /* Blue */
+            --warning-color: #f57c00;      /* Orange */
+            --danger-color: #d32f2f;       /* Red */
+            --light-color: #f5f5f5;        /* Light gray */
+            --dark-color: #37474f;         /* Dark blue-gray */
+            
+            /* Additional theme colors */
+            --neutral-color: #78909c;      /* Blue-gray */
+            --feature-color: #7b1fa2;      /* Purple */
+            --bug-color: #ff8f00;          /* Amber */
+            --positive-color: #00897b;     /* Teal */
+            --negative-color: #c62828;     /* Deep red */
         }
-        
+
+        /* Base Styles */
         body {
             font-family: 'Nunito', sans-serif;
             background-color: #f8f9fc;
+            overflow-x: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Sidebar Styles */
         .sidebar {
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             min-height: 100vh;
-            background-color: #4e73df;
-            background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
-            background-size: cover;
+            transition: all 0.3s ease;
+            z-index: 100;
         }
-        
+
         .sidebar-brand {
-            height: 4.375rem;
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 800;
+            margin-bottom: 1rem;
             padding: 1.5rem 1rem;
             text-align: center;
-            letter-spacing: 0.05rem;
-            z-index: 1;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
-        
+
+        .sidebar-brand:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
         .sidebar-brand-icon {
-            font-size: 2rem;
+            font-size: 1.8rem;
+            color: white;
+            animation: pulse 2s infinite;
         }
-        
+
         .sidebar-brand-text {
-            display: inline;
-            font-size: 1.2rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: 0.05rem;
         }
-        
+
         .sidebar-divider {
             border-top: 1px solid rgba(255, 255, 255, 0.15);
             margin: 0 1rem 1rem;
         }
-        
+
         .sidebar-heading {
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.6);
             font-size: 0.75rem;
             font-weight: 800;
             letter-spacing: 0.13rem;
             text-transform: uppercase;
-            padding: 0 1rem;
-            margin-bottom: 0.5rem;
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
         }
-        
+
         .nav-item .nav-link {
             display: block;
             color: rgba(255, 255, 255, 0.8);
             padding: 0.75rem 1rem;
             font-weight: 600;
             font-size: 0.9rem;
+            border-radius: 5px;
+            margin: 0.2rem 0.5rem;
+            transition: all 0.3s ease;
         }
-        
+
         .nav-item .nav-link:hover {
             color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+            text-decoration: none;
         }
-        
+
         .nav-item .nav-link i {
             margin-right: 0.5rem;
             font-size: 0.85rem;
+            width: 20px;
+            text-align: center;
         }
-        
+
         .nav-item.active .nav-link {
             color: #fff;
             font-weight: 700;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        
+
+        /* Content and Topbar Styles */
         .content {
             flex: 1 0 auto;
+            transition: all 0.3s ease;
         }
-        
+
         .topbar {
             height: 4.375rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
             background-color: #fff;
+            transition: all 0.3s ease;
         }
-        
+
+        .navbar-search .input-group {
+            border-radius: 2rem;
+            overflow: hidden;
+        }
+
+        .navbar-search .form-control {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
         .dropdown-menu {
             border: none;
             box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease-out;
         }
-        
+
+        /* Card Styles */
         .card {
             margin-bottom: 1.5rem;
             border: none;
+            border-radius: 0.5rem;
             box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.10);
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
         }
-        
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
         .card-header {
             background-color: #f8f9fc;
             border-bottom: 1px solid #e3e6f0;
+            padding: 1rem 1.25rem;
+            border-top-left-radius: 0.5rem !important;
+            border-top-right-radius: 0.5rem !important;
+            transition: all 0.3s ease;
         }
-        
+
         .card-header h6 {
             font-weight: 700;
             font-size: 1rem;
-            color: #4e73df;
+            color: var(----light-color);
+            margin: 0;
         }
-        
+
+        /* Button Styles */
+        .btn {
+            border-radius: 0.35rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            transition: all 0.2s;
+        }
+
         .btn-primary {
-            background-color: #4e73df;
-            border-color: #4e73df;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
-        
+
         .btn-primary:hover {
-            background-color: #2e59d9;
-            border-color: #2653d4;
+            background-color: #303f9f;
+            border-color: #303f9f;
+            transform: translateY(-2px);
         }
-        
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background-color: #1b5e20;
+            border-color: #1b5e20;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            border-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #0277bd;
+            border-color: #0277bd;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #ef6c00;
+            border-color: #ef6c00;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background-color: #b71c1c;
+            border-color: #b71c1c;
+            transform: translateY(-2px);
+        }
+
+        /* Progress Bars */
+        .progress {
+            height: 0.8rem;
+            border-radius: 0.5rem;
+            background-color: #eaecf4;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            transition: width 1s ease-in-out;
+            border-radius: 0.5rem;
+        }
+
+        /* Table Styles */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table-responsive {
+            border-radius: 0.35rem;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            border-bottom-width: 1px;
+            font-weight: 700;
+            background-color: #f8f9fc;
+            color: #6e707e;
+            white-space: nowrap;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+
+        /* Badge Styles */
+        .badge {
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Footer Styles */
         .footer {
-            padding: 2rem 0;
+            padding: 1.5rem 0;
             flex-shrink: 0;
             background-color: #fff;
             box-shadow: 0 -0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: all 0.3s ease;
         }
-        
-        /* Border utilities */
+
+        /* Border utilities with theme colors */
         .border-left-primary {
-            border-left: 0.25rem solid #4e73df !important;
+            border-left: 0.25rem solid var(--primary-color) !important;
         }
-        
+
         .border-left-success {
-            border-left: 0.25rem solid #1cc88a !important;
+            border-left: 0.25rem solid var(--success-color) !important;
         }
-        
+
         .border-left-info {
-            border-left: 0.25rem solid #36b9cc !important;
+            border-left: 0.25rem solid var(--info-color) !important;
         }
-        
+
         .border-left-warning {
-            border-left: 0.25rem solid #f6c23e !important;
+            border-left: 0.25rem solid var(--warning-color) !important;
         }
-        
+
         .border-left-danger {
-            border-left: 0.25rem solid #e74a3b !important;
+            border-left: 0.25rem solid var(--danger-color) !important;
+        }
+
+        .border-left-secondary {
+            border-left: 0.25rem solid var(--secondary-color) !important;
+        }
+
+        .border-left-feature {
+            border-left: 0.25rem solid var(--feature-color) !important;
+        }
+
+        .border-left-neutral {
+            border-left: 0.25rem solid var(--neutral-color) !important;
+        }
+
+        /* Alert Styling */
+        .alert {
+            border-radius: 0.35rem;
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(58, 59, 69, 0.15);
+        }
+
+        .alert-success {
+            background-color: rgba(46, 125, 50, 0.1);
+            color: var(--success-color);
+        }
+
+        .alert-danger {
+            background-color: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 124, 0, 0.1);
+            color: var(--warning-color);
+        }
+
+        .alert-info {
+            background-color: rgba(2, 136, 209, 0.1);
+            color: var(--info-color);
+        }
+
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            display: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .topbar {
+            background-color: #1e1e1e;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        body.dark-mode .card-header {
+            background-color: #282828;
+            border-color: #333;
+        }
+
+        body.dark-mode .footer {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            box-shadow: 0 -0.15rem 1.75rem 0 rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .table {
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .table thead th {
+            background-color: #282828;
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .table-bordered {
+            border-color: #333;
+        }
+
+        body.dark-mode .text-gray-800 {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .bg-light {
+            background-color: #282828 !important;
+        }
+
+        body.dark-mode .text-muted {
+            color: #aaaaaa !important;
+        }
+
+        body.dark-mode .navbar-search .form-control {
+            background-color: #333;
+            border-color: #444;
+            color: #e0e0e0;
+        }
+
+        /* Responsive Layout Adjustments */
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 0.75rem;
+            }
+            
+            .table td, .table th {
+                padding: 0.5rem;
+            }
+            
+            .sidebar {
+                width: 260px;
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 999;
+                height: 100%;
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            .navbar-toggler {
+                display: block;
+            }
+            
+            .navbar-collapse {
+                display: none;
+            }
         }
     </style>
-    
+
     {% block extra_css %}{% endblock %}
 </head>
+
 <body>
     <div class="d-flex">
         {% if user.is_authenticated %}
         <!-- Sidebar -->
         <div class="sidebar">
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'dashboard:dashboard' %}">
+            <a class="sidebar-brand d-flex align-items-center justify-content-center"
+                href="{% url 'dashboard:dashboard' %}">
                 <div class="sidebar-brand-icon">
                     <i class="fas fa-chart-pie"></i>
                 </div>
                 <div class="sidebar-brand-text mx-3">SentimentSphere</div>
             </a>
-            
+
             <hr class="sidebar-divider">
-            
+
             <div class="sidebar-heading">Core</div>
-            
+
             <ul class="nav flex-column">
                 <li class="nav-item {% block dashboard_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'dashboard:dashboard' %}">
@@ -189,14 +519,14 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item {% block feedback_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'dashboard:feedback_list' %}">
                         <i class="fas fa-fw fa-comments"></i>
                         <span>Feedback</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item {% block batches_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'dashboard:batch_list' %}">
                         <i class="fas fa-fw fa-layer-group"></i>
@@ -204,11 +534,11 @@
                     </a>
                 </li>
             </ul>
-            
+
             <hr class="sidebar-divider">
-            
+
             <div class="sidebar-heading">Analysis</div>
-            
+
             <ul class="nav flex-column">
                 <li class="nav-item {% block upload_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'analysis:upload_batch' %}">
@@ -216,14 +546,14 @@
                         <span>Upload Data</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item {% block prompts_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'analysis:prompt_list' %}">
                         <i class="fas fa-fw fa-terminal"></i>
                         <span>Prompts</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item {% block runs_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'analysis:run_list' %}">
                         <i class="fas fa-fw fa-play-circle"></i>
@@ -231,11 +561,11 @@
                     </a>
                 </li>
             </ul>
-            
+
             <hr class="sidebar-divider">
-            
+
             <div class="sidebar-heading">Settings</div>
-            
+
             <ul class="nav flex-column">
                 <li class="nav-item {% block profile_active %}{% endblock %}">
                     <a class="nav-link" href="{% url 'accounts:profile' %}">
@@ -243,17 +573,24 @@
                         <span>Profile</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'accounts:logout' %}">
                         <i class="fas fa-fw fa-sign-out-alt"></i>
                         <span>Logout</span>
                     </a>
                 </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="darkModeToggle">
+                        <i class="fas fa-fw fa-moon"></i>
+                        <span>Dark Mode</span>
+                    </a>
+                </li>
             </ul>
         </div>
         {% endif %}
-        
+
         <!-- Content Wrapper -->
         <div class="content d-flex flex-column flex-grow-1">
             {% if user.is_authenticated %}
@@ -261,14 +598,15 @@
             <nav class="navbar navbar-expand topbar mb-4 static-top">
                 <div class="container-fluid">
                     <!-- Sidebar Toggle (Topbar) -->
-                    <button class="btn btn-link d-md-none rounded-circle mr-3">
+                    <button class="btn btn-link d-md-none rounded-circle mr-3" id="sidebarToggleBtn">
                         <i class="fa fa-bars"></i>
                     </button>
-                    
+
                     <!-- Topbar Search -->
                     <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
-                            <input type="text" class="form-control bg-light small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
+                            <input type="text" class="form-control bg-light small" placeholder="Search for..."
+                                aria-label="Search" aria-describedby="basic-addon2">
                             <div class="input-group-append">
                                 <button class="btn btn-primary" type="button">
                                     <i class="fas fa-search fa-sm"></i>
@@ -276,14 +614,15 @@
                             </div>
                         </div>
                     </form>
-                    
+
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
                         <div class="topbar-divider d-none d-sm-block"></div>
-                        
+
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ user.username }}</span>
                                 <i class="fas fa-user-circle fa-fw"></i>
                             </a>
@@ -304,7 +643,7 @@
                 </div>
             </nav>
             {% endif %}
-            
+
             <!-- Main Content -->
             <div class="container-fluid">
                 {% if messages %}
@@ -319,10 +658,10 @@
                     </div>
                 </div>
                 {% endif %}
-                
+
                 {% block content %}{% endblock %}
             </div>
-            
+
             <!-- Footer -->
             <footer class="footer mt-auto">
                 <div class="container">
@@ -333,13 +672,110 @@
             </footer>
         </div>
     </div>
-    
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="d-flex justify-content-center align-items-center h-100">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap core JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
+    <!-- Core Script -->
+    <script>
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'block';
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form loading indicators
+            const analysisForm = document.querySelector('form[action*="analyze"]');
+            if (analysisForm) {
+                analysisForm.addEventListener('submit', showLoading);
+            }
+            
+            const uploadForm = document.querySelector('form[action*="upload"]');
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', showLoading);
+            }
+            
+            // Mobile sidebar toggle
+            const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+            const sidebar = document.querySelector('.sidebar');
+            
+            if (sidebarToggleBtn && sidebar) {
+                sidebarToggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+                
+                // Close sidebar when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!sidebar.contains(event.target) && !sidebarToggleBtn.contains(event.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.body.classList.toggle('dark-mode');
+                    
+                    // Save preference
+                    const isDarkMode = document.body.classList.contains('dark-mode');
+                    localStorage.setItem('darkMode', isDarkMode);
+                    
+                    // Update icon and text
+                    const icon = darkModeToggle.querySelector('i');
+                    const text = darkModeToggle.querySelector('span');
+                    
+                    if (isDarkMode) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                        text.textContent = 'Light Mode';
+                    } else {
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                        text.textContent = 'Dark Mode';
+                    }
+                });
+                
+                // Check saved preference
+                if (localStorage.getItem('darkMode') === 'true') {
+                    document.body.classList.add('dark-mode');
+                    const icon = darkModeToggle.querySelector('i');
+                    const text = darkModeToggle.querySelector('span');
+                    
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    text.textContent = 'Light Mode';
+                }
+            }
+            
+            // Add animation to cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

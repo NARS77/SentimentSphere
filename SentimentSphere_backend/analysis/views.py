@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd
 import openai
+from textblob import TextBlob
+from collections import Counter
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -205,118 +207,181 @@ def download_results(request, run_id):
 
 # Helper function to process a batch of feedback
 def process_batch(run):
-    """Process a batch of feedback using OpenAI API"""
-    batch = run.batch
-    prompt_template = run.prompt.prompt_template
-    
-    # Read the CSV file
-    file_path = batch.original_file.path
-    df = pd.read_csv(file_path)
-    
-    # Get or create categories
-    positive_category, _ = FeedbackCategory.objects.get_or_create(name='Positive')
-    negative_category, _ = FeedbackCategory.objects.get_or_create(name='Negative')
-    neutral_category, _ = FeedbackCategory.objects.get_or_create(name='Neutral')
-    feature_request, _ = FeedbackCategory.objects.get_or_create(name='Feature Request')
-    bug_report, _ = FeedbackCategory.objects.get_or_create(name='Bug Report')
-    
-    # Process each row
-    processed_count = 0
-    
-    # Initialize OpenAI client
-    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
-    
-    for _, row in df.iterrows():
-        content = row['content']
-        rating = row.get('rating', None)
-        customer_id = row.get('customer_id', None)
-        feedback_date = row.get('feedback_date', None)
-        
-        # Format the prompt with the feedback content
-        formatted_prompt = prompt_template.format(feedback=content)
-        
-        try:
-            # Call the OpenAI API with the new client-based approach
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a feedback analyzer. Categorize the feedback into one of these categories: Positive, Negative, Neutral, Feature Request, or Bug Report. Also, provide a sentiment score from -1 (very negative) to 1 (very positive)."},
-                    {"role": "user", "content": formatted_prompt}
-                ],
-                temperature=0.3,
-                max_tokens=150
-            )
-            
-            # Extract the result
-            result = response.choices[0].message.content
-            
-            # Parse the result (assuming a standardized format)
-            # In a real app, this parsing would be more robust
-            category_name = None
-            sentiment_score = None
-            
-            if "positive" in result.lower():
-                category_name = 'Positive'
-            elif "negative" in result.lower():
-                category_name = 'Negative'
-            elif "neutral" in result.lower():
-                category_name = 'Neutral'
-            elif "feature request" in result.lower():
-                category_name = 'Feature Request'
-            elif "bug report" in result.lower():
-                category_name = 'Bug Report'
-            
-            # Try to extract sentiment score
-            import re
-            score_match = re.search(r'sentiment score:?\s*([-+]?\d*\.\d+|\d+)', result.lower())
-            if score_match:
-                sentiment_score = float(score_match.group(1))
-            
-            # Determine the category object
-            category = None
-            if category_name == 'Positive':
-                category = positive_category
-            elif category_name == 'Negative':
-                category = negative_category
-            elif category_name == 'Neutral':
-                category = neutral_category
-            elif category_name == 'Feature Request':
-                category = feature_request
-            elif category_name == 'Bug Report':
-                category = bug_report
-            
-            # Create the feedback item
-            FeedbackItem.objects.create(
-                client=run.client,
-                batch=batch,  # Important: Associate with the batch!
-                source=batch.source,
-                category=category,
-                content=content,
-                rating=rating,
-                sentiment_score=sentiment_score,
-                processed=True,
-                customer_id=customer_id,
-                feedback_date=feedback_date
-            )
-            
-            # Update progress
-            processed_count += 1
-            run.processed_items = processed_count
-            run.save()
-            
-        except Exception as e:
-            # Log the error but continue processing
-            print(f"Error processing item: {str(e)}")
-    
-    # Update the run status
-    run.status = 'completed'
-    run.completed_at = timezone.now()
-    run.save()
-    
-    # Update the batch status
-    batch.processed = True
-    batch.save()
+    """
+    Process a batch of feedback using TextBlob for sentiment analysis,
+    keyword extraction, and category classification.
+    """
+    from collections import Counter
+    from textblob import TextBlob
+    import json
+    from django.utils import timezone
+    import logging
 
+    logger = logging.getLogger(__name__)
+    batch = run.batch
+    
+    try:
+        # Read the CSV file
+        file_path = batch.original_file.path
+        df = pd.read_csv(file_path)
+        
+        # Get or create categories
+        positive_category, _ = FeedbackCategory.objects.get_or_create(name='Positive')
+        negative_category, _ = FeedbackCategory.objects.get_or_create(name='Negative')
+        neutral_category, _ = FeedbackCategory.objects.get_or_create(name='Neutral')
+        feature_request, _ = FeedbackCategory.objects.get_or_create(name='Feature Request')
+        bug_report, _ = FeedbackCategory.objects.get_or_create(name='Bug Report')
+        
+        # Initialize keyword collection
+        all_words = []
+        keyword_sentiment = {}
+        
+        # Process each row
+        processed_count = 0
+        total_sentiment = 0
+        
+        # Feature words and bug words for better classification
+        feature_words = ['feature', 'add', 'would like', 'should have', 'missing', 'needs', 'want', 
+                         'implement', 'include', 'suggestion', 'recommend', 'improve']
+        bug_words = ['bug', 'crash', 'error', 'issue', 'problem', 'broken', 'fix', 'glitch', 
+                     'fails', 'not working', 'incorrect', 'wrong', 'broken']
+        
+        for _, row in df.iterrows():
+            content = row['content']
+            rating = row.get('rating', None)
+            customer_id = row.get('customer_id', None)
+            feedback_date = row.get('feedback_date', None)
+            
+            try:
+                # Use TextBlob for sentiment analysis
+                blob = TextBlob(content)
+                sentiment_score = blob.sentiment.polarity  # Range from -1 to 1
+                total_sentiment += sentiment_score
+                
+                # Extract significant words (nouns and adjectives) for keyword analysis
+                significant_words = []
+                
+                # Extract nouns and adjectives as potential keywords
+                for word, tag in blob.tags:
+                    # Skip short words
+                    if len(word) <= 2:
+                        continue
+                    
+                    # Extract nouns and adjectives
+                    if tag.startswith('NN') or tag.startswith('JJ'):  
+                        word = word.lower()
+                        significant_words.append(word)
+                        
+                        # Track sentiment associated with each keyword
+                        if word not in keyword_sentiment:
+                            keyword_sentiment[word] = []
+                        keyword_sentiment[word].append(sentiment_score)
+                
+                # Add to the overall keywords collection
+                all_words.extend(significant_words)
+                
+                # Improved category detection logic
+                content_lower = content.lower()
+                
+                # Check for feature requests
+                feature_match = any(word in content_lower for word in feature_words)
+                
+                # Check for bug reports
+                bug_match = any(word in content_lower for word in bug_words)
+                
+                # Determine category based on sentiment and content patterns
+                if bug_match:
+                    category = bug_report
+                elif feature_match:
+                    category = feature_request
+                elif sentiment_score > 0.3:
+                    category = positive_category
+                elif sentiment_score < -0.3:
+                    category = negative_category
+                else:
+                    category = neutral_category
+                
+                # Create the feedback item
+                FeedbackItem.objects.create(
+                    client=run.client,
+                    batch=batch,
+                    source=batch.source,
+                    category=category,
+                    content=content,
+                    rating=rating,
+                    sentiment_score=sentiment_score,
+                    processed=True,
+                    customer_id=customer_id,
+                    feedback_date=feedback_date
+                )
+                
+                # Update progress
+                processed_count += 1
+                run.processed_items = processed_count
+                run.save()
+                
+            except Exception as e:
+                logger.error(f"Error processing item: {str(e)}")
+                # Continue processing other items
+                continue
+        
+        # Process keywords and their sentiment
+        top_keywords = []
+        if all_words:
+            # Count occurrences
+            word_counter = Counter(all_words)
+            
+            # Get top keywords (adjust number as needed)
+            for word, count in word_counter.most_common(30):
+                # Skip words that appear only once
+                if count < 2:
+                    continue
+                    
+                # Calculate average sentiment for this keyword
+                avg_sentiment = sum(keyword_sentiment[word]) / len(keyword_sentiment[word])
+                
+                top_keywords.append({
+                    "text": word,
+                    "count": count,
+                    "sentiment": round(avg_sentiment, 2)
+                })
+        
+        # Calculate average sentiment for the batch
+        avg_sentiment = total_sentiment / processed_count if processed_count > 0 else 0
+        
+        # Store keyword data with the batch
+        if hasattr(batch, 'keyword_data') and batch._meta.get_field('keyword_data'):
+            batch.keyword_data = json.dumps(top_keywords)
+        else:
+            # If the field doesn't exist yet, store it in a different way
+            # For example, you could create a separate model for this
+            pass
+            
+        # Store average sentiment
+        if hasattr(batch, 'avg_sentiment') and batch._meta.get_field('avg_sentiment'):
+            batch.avg_sentiment = avg_sentiment
+        
+        # Update the batch and run status
+        batch.processed = True
+        batch.save()
+        
+        run.status = 'completed'
+        run.completed_at = timezone.now()
+        run.save()
+        
+        return True, "Processing completed successfully."
+        
+    except Exception as e:
+        error_msg = f"Batch processing failed: {str(e)}"
+        logger.error(error_msg)
+        
+        # Update the run status to failed
+        run.status = 'failed'
+        run.error_message = error_msg
+        run.completed_at = timezone.now()
+        run.save()
+        
+        return False, error_msg
 # API Views
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])

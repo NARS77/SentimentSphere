@@ -1,0 +1,6 @@
+content,rating,customer_id,feedback_date
+"Great product, love the features!",5,cust123,2025-05-01
+"App crashes every time I try to save.",2,cust456,2025-05-02
+"Would be better with dark mode.",4,cust789,2025-05-03
+"Absolutely terrible customer service.",1,cust101,2025-05-04
+"Works as expected, nothing special.",3,cust202,2025-05-05

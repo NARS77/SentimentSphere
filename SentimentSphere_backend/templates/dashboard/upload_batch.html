@@ -1,0 +1,497 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Feedback - SentimentSphere{% endblock %}
+
+{% block upload_active %}active{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Upload Feedback Data</h1>
+    <a href="{% url 'dashboard:dashboard' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4 border-left-primary">
+            <div class="card-header py-3" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Upload New Feedback Batch</h6>
+            </div>
+            <div class="card-body">
+                <!-- Progress Steps -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between position-relative mb-4">
+                        <div class="step active text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="step-label mt-2">Upload</div>
+                        </div>
+                        <div class="step text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="step-label mt-2">Process</div>
+                        </div>
+                        <div class="step text-center">
+                            <div class="step-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="step-label mt-2">Results</div>
+                        </div>
+                        
+                        <!-- Connecting Lines -->
+                        <div class="step-line"></div>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag me-1"></i> Batch Name
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.name.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Choose a descriptive name that identifies this batch of feedback.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.source.id_for_label }}" class="form-label">
+                            <i class="fas fa-globe me-1"></i> Feedback Source
+                        </label>
+                        {{ form.source }}
+                        {% if form.source.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.source.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Select the origin of this feedback data (e.g., App Store, Website).</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.original_file.id_for_label }}" class="form-label">
+                            <i class="fas fa-file-csv me-1"></i> CSV File
+                        </label>
+                        <div class="custom-file-upload">
+                            {{ form.original_file }}
+                            <div class="file-upload-info mt-2 p-3 bg-light rounded" id="fileInfo" style="display: none;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-csv fa-2x me-3 text-primary"></i>
+                                    <div>
+                                        <div id="fileName" class="fw-bold"></div>
+                                        <div id="fileSize" class="small text-muted"></div>
+                                    </div>
+                                    <button type="button" id="removeFile" class="btn btn-sm btn-outline-danger ms-auto">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% if form.original_file.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.original_file.errors.0 }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Upload a CSV file with feedback data. Must include 'content' and 'rating' columns.</div>
+                    </div>
+                    
+                    <!-- File Format Reminder -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                            <div>
+                                <h6 class="alert-heading mb-1">CSV Format Requirements</h6>
+                                <p class="mb-0">Your CSV file must have the columns <code>content</code> and <code>rating</code>. 
+                                Optional columns include <code>customer_id</code> and <code>feedback_date</code>.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary me-2" onclick="window.history.back();">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="uploadButton">
+                            <i class="fas fa-upload me-1"></i>Upload Batch
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- CSV Format Guide Card -->
+        <div class="card shadow mb-4 border-left-info">
+            <div class="card-header py-3" style="background-color: var(--info-color); color: white;">
+                <h6 class="m-0 font-weight-bold">CSV Format Guide</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-check-circle text-success me-2"></i>Required Columns:</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center px-0">
+                            <span class="badge bg-primary me-2">content</span>
+                            <span>The text of the feedback</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center px-0">
+                            <span class="badge bg-primary me-2">rating</span>
+                            <span>Numeric rating (e.g., 1-5)</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-3">
+                    <h5 class="border-bottom pb-2"><i class="fas fa-star-half-alt text-warning me-2"></i>Optional Columns:</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center px-0">
+                            <span class="badge bg-secondary me-2">customer_id</span>
+                            <span>Identifier for the customer</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center px-0">
+                            <span class="badge bg-secondary me-2">feedback_date</span>
+                            <span>When feedback was given (YYYY-MM-DD)</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <h5 class="border-bottom pb-2"><i class="fas fa-table text-info me-2"></i>Example:</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>content</th>
+                                <th>rating</th>
+                                <th>customer_id</th>
+                                <th>feedback_date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Great product, love it!</td>
+                                <td class="text-center">
+                                    <span class="badge bg-success rounded-pill">5</span>
+                                </td>
+                                <td>cust123</td>
+                                <td>2023-05-15</td>
+                            </tr>
+                            <tr>
+                                <td>App crashes frequently.</td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger rounded-pill">2</span>
+                                </td>
+                                <td>cust456</td>
+                                <td>2023-05-16</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="#" class="btn btn-success btn-sm" id="downloadSampleBtn">
+                        <i class="fas fa-download me-2"></i>Download Sample CSV
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#csvHelpModal">
+                        <i class="fas fa-question-circle me-1"></i>Help
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Batches Card -->
+        <div class="card shadow mb-4 border-left-secondary">
+            <div class="card-header py-3" style="background-color: var(--secondary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Recent Uploads</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for batch in recent_batches|slice:":5" %}
+                    <a href="{% url 'dashboard:batch_detail' batch.id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ batch.name }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-globe-americas me-1"></i> {{ batch.source.name }}
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ batch.upload_date|date:"M d, Y" }}</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-center py-4">
+                        <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                        <p class="mb-0 text-muted">No recent uploads</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recent_batches %}
+                <div class="card-footer bg-light text-center">
+                    <a href="{% url 'dashboard:batch_list' %}" class="text-primary">
+                        View All Batches <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSV Help Modal -->
+<div class="modal fade" id="csvHelpModal" tabindex="-1" aria-labelledby="csvHelpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="csvHelpModalLabel">CSV File Preparation Guide</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h5>How to Prepare Your CSV File</h5>
+                    <p>Follow these steps to prepare your feedback data for upload:</p>
+                    <ol>
+                        <li>Create a new spreadsheet in Excel, Google Sheets, or another spreadsheet application.</li>
+                        <li>Add the following column headers in the first row: <code>content</code>, <code>rating</code>, <code>customer_id</code> (optional), <code>feedback_date</code> (optional).</li>
+                        <li>Add your feedback data under the appropriate columns.</li>
+                        <li>Save or export the file as CSV (Comma Separated Values) format.</li>
+                        <li>Upload the CSV file using the form on this page.</li>
+                    </ol>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Column Descriptions</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Column</th>
+                                    <th>Required</th>
+                                    <th>Format</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>content</code></td>
+                                    <td>
+                                        <span class="badge bg-success">Required</span>
+                                    </td>
+                                    <td>Text</td>
+                                    <td>The actual feedback content provided by the customer.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>rating</code></td>
+                                    <td>
+                                        <span class="badge bg-success">Required</span>
+                                    </td>
+                                    <td>Number (1-5)</td>
+                                    <td>Numeric rating given by the customer, typically on a scale of 1-5.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>customer_id</code></td>
+                                    <td>
+                                        <span class="badge bg-secondary">Optional</span>
+                                    </td>
+                                    <td>Text/Number</td>
+                                    <td>Unique identifier for the customer who provided the feedback.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>feedback_date</code></td>
+                                    <td>
+                                        <span class="badge bg-secondary">Optional</span>
+                                    </td>
+                                    <td>YYYY-MM-DD</td>
+                                    <td>The date when the feedback was provided.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Tip:</strong> For best results, ensure your CSV file is properly formatted and encoded as UTF-8.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" class="btn btn-primary" id="downloadSampleBtnModal">
+                    <i class="fas fa-download me-2"></i>Download Sample CSV
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add styling for progress steps -->
+<style>
+    .step {
+        position: relative;
+        z-index: 1;
+        width: 60px;
+    }
+    
+    .step-icon {
+        width: 50px;
+        height: 50px;
+        background-color: #f8f9fc;
+        border: 2px solid #d1d3e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #d1d3e2;
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+    
+    .step.active .step-icon {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 0 10px rgba(78, 115, 223, 0.4);
+    }
+    
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .step.active .step-label {
+        color: var(--primary-color);
+    }
+    
+    .step-line {
+        position: absolute;
+        top: 25px;
+        left: 80px;
+        right: 80px;
+        height: 2px;
+        background-color: #d1d3e2;
+        z-index: 0;
+    }
+    
+    .custom-file-upload input[type="file"] {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        appearance: none;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+    
+    .custom-file-upload input[type="file"]:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File upload preview
+        const fileInput = document.getElementById('{{ form.original_file.id_for_label }}');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFile = document.getElementById('removeFile');
+        
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileName.textContent = file.name;
+                    
+                    // Calculate file size in KB or MB
+                    let size;
+                    if (file.size < 1024 * 1024) {
+                        size = (file.size / 1024).toFixed(2) + ' KB';
+                    } else {
+                        size = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+                    }
+                    
+                    fileSize.textContent = size;
+                    fileInfo.style.display = 'block';
+                } else {
+                    fileInfo.style.display = 'none';
+                }
+            });
+            
+            // Remove file button
+            if (removeFile) {
+                removeFile.addEventListener('click', function() {
+                    fileInput.value = '';
+                    fileInfo.style.display = 'none';
+                });
+            }
+        }
+        
+        // Download sample CSV functionality
+        const downloadSampleBtn = document.getElementById('downloadSampleBtn');
+        const downloadSampleBtnModal = document.getElementById('downloadSampleBtnModal');
+        
+        function downloadSampleCSV() {
+            const csvContent = 'content,rating,customer_id,feedback_date\n' +
+                '"Great product, love the features!",5,cust123,2023-05-01\n' +
+                '"App crashes every time I try to save.",2,cust456,2023-05-02\n' +
+                '"Would be better with dark mode.",4,cust789,2023-05-03\n' +
+                '"Absolutely terrible customer service.",1,cust101,2023-05-04\n' +
+                '"Works as expected, nothing special.",3,cust202,2023-05-05';
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'sample_feedback.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        if (downloadSampleBtn) {
+            downloadSampleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                downloadSampleCSV();
+            });
+        }
+        
+        if (downloadSampleBtnModal) {
+            downloadSampleBtnModal.addEventListener('click', function(e) {
+                e.preventDefault();
+                downloadSampleCSV();
+            });
+        }
+        
+        // Form submission loading state
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadButton = document.getElementById('uploadButton');
+        
+        if (uploadForm && uploadButton) {
+            uploadForm.addEventListener('submit', function() {
+                uploadButton.disabled = true;
+                uploadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Uploading...';
+                showLoading(); // This uses the loading overlay defined in base.html
+            });
+        }
+    });
+</script>
+{% endblock %}

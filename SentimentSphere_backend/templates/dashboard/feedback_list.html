@@ -1,119 +1,804 @@
 {% extends 'base.html' %}
 
-{% block title %}Upload Feedback - SentimentSphere{% endblock %}
+{% block title %}Feedback List - SentimentSphere{% endblock %}
 
-{% block upload_active %}active{% endblock %}
+{% block feedback_active %}active{% endblock %}
 
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Upload Feedback Data</h1>
-    <a href="{% url 'dashboard:dashboard' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
-        <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Dashboard
-    </a>
+    <h1 class="h3 mb-0 text-gray-800">Feedback Management</h1>
+    <div>
+        <a href="#" id="exportFeedbackBtn" class="d-none d-sm-inline-block btn btn-outline-success shadow-sm me-2">
+            <i class="fas fa-file-export fa-sm me-2"></i>Export Data
+        </a>
+        <a href="{% url 'analysis:upload_batch' %}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+            <i class="fas fa-upload fa-sm text-white-50 me-2"></i>Upload New Data
+        </a>
+    </div>
 </div>
 
+<!-- Feedback Summary Cards -->
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Upload New Feedback Batch</h6>
-            </div>
+    <!-- Total Feedback Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Batch Name</label>
-                        {{ form.name }}
-                        {% if form.name.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.name.errors.0 }}
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--primary-color);">
+                            Total Feedback
                         </div>
-                        {% endif %}
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ feedback_items|length }}</div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.source.id_for_label }}" class="form-label">Feedback Source</label>
-                        {{ form.source }}
-                        {% if form.source.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.source.errors.0 }}
-                        </div>
-                        {% endif %}
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x" style="color: var(--primary-color); opacity: 0.2;"></i>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.original_file.id_for_label }}" class="form-label">CSV File</label>
-                        {{ form.original_file }}
-                        {% if form.original_file.errors %}
-                        <div class="invalid-feedback d-block">
-                            {{ form.original_file.errors.0 }}
-                        </div>
-                        {% endif %}
-                        <div class="form-text">Upload a CSV file with feedback data. Must include 'content' and 'rating' columns.</div>
-                    </div>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-upload me-2"></i>Upload Batch
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">CSV Format Guide</h6>
-            </div>
+
+    <!-- Positive Feedback Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
-                <h5>Required Columns:</h5>
-                <ul>
-                    <li><strong>content</strong> - The text of the feedback</li>
-                    <li><strong>rating</strong> - Numeric rating (e.g., 1-5)</li>
-                </ul>
-                
-                <h5>Optional Columns:</h5>
-                <ul>
-                    <li><strong>customer_id</strong> - Identifier for the customer</li>
-                    <li><strong>feedback_date</strong> - When the feedback was given (YYYY-MM-DD format)</li>
-                </ul>
-                
-                <h5>Example:</h5>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--positive-color);">
+                            Positive Feedback
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ feedback_items|filter_by_category:"Positive"|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-thumbs-up fa-2x" style="color: var(--positive-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Negative Feedback Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--negative-color);">
+                            Negative Feedback
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ feedback_items|filter_by_category:"Negative"|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-thumbs-down fa-2x" style="color: var(--negative-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Rating Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--warning-color);">
+                            Average Rating
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if avg_rating %}
+                                {{ avg_rating|floatformat:1 }}/5.0
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-star fa-2x" style="color: var(--warning-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Feedback Items</h6>
+                <div>
+                    <button class="btn btn-sm btn-light" id="filterToggleBtn">
+                        <i class="fas fa-filter me-1"></i> Filters
+                    </button>
+                    <div class="dropdown d-inline-block ms-2">
+                        <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="viewToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-th-list me-1"></i> View
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="viewToggleBtn">
+                            <li><a class="dropdown-item view-option active" data-view="table" href="#"><i class="fas fa-table me-2"></i>Table View</a></li>
+                            <li><a class="dropdown-item view-option" data-view="cards" href="#"><i class="fas fa-th-large me-2"></i>Card View</a></li>
+                            <li><a class="dropdown-item view-option" data-view="compact" href="#"><i class="fas fa-list me-2"></i>Compact View</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filter Panel -->
+            <div class="card-body py-3 bg-light border-bottom" id="filterPanel" style="display: none;">
+                <form id="feedbackFilterForm" method="get" action="{% url 'dashboard:feedback_list' %}">
+                    <div class="row g-3">
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label">Source</label>
+                            <select name="source" class="form-select form-select-sm" id="sourceFilter">
+                                <option value="">All Sources</option>
+                                {% for source in sources %}
+                                    <option value="{{ source.id }}" {% if request.GET.source == source.id|stringformat:"i" %}selected{% endif %}>
+                                        {{ source.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select form-select-sm" id="categoryFilter">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"i" %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 col-sm-6">
+                            <label class="form-label">Rating</label>
+                            <select name="rating" class="form-select form-select-sm" id="ratingFilter">
+                                <option value="">All Ratings</option>
+                                <option value="5" {% if request.GET.rating == '5' %}selected{% endif %}>5 Stars</option>
+                                <option value="4" {% if request.GET.rating == '4' %}selected{% endif %}>4 Stars</option>
+                                <option value="3" {% if request.GET.rating == '3' %}selected{% endif %}>3 Stars</option>
+                                <option value="2" {% if request.GET.rating == '2' %}selected{% endif %}>2 Stars</option>
+                                <option value="1" {% if request.GET.rating == '1' %}selected{% endif %}>1 Star</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 col-sm-6">
+                            <label class="form-label">Date Range</label>
+                            <select name="date_range" class="form-select form-select-sm" id="dateRangeFilter">
+                                <option value="">All Time</option>
+                                <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if request.GET.date_range == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if request.GET.date_range == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="custom" {% if request.GET.date_range == 'custom' %}selected{% endif %}>Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 col-sm-12 d-flex align-items-end">
+                            <div class="d-grid w-100">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search me-1"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom Date Range (initially hidden) -->
+                    <div class="row mt-3" id="customDateRange" style="display: none;">
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label">From Date</label>
+                            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request.GET.date_from }}">
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <label class="form-label">To Date</label>
+                            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request.GET.date_to }}">
+                        </div>
+                    </div>
+                    
+                    {% if filters_applied %}
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-filter me-1"></i> Filtered results: <strong>{{ filtered_count }}</strong> items
+                        </div>
+                        <a href="{% url 'dashboard:feedback_list' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Clear Filters
+                        </a>
+                    </div>
+                    {% endif %}
+                </form>
+            </div>
+            
+            <!-- Table View -->
+            <div class="card-body view-container" id="tableView">
+                {% if feedback_items %}
                 <div class="table-responsive">
-                    <table class="table table-bordered table-sm">
+                    <table class="table table-hover table-striped" id="feedbackTable">
                         <thead>
                             <tr>
-                                <th>content</th>
-                                <th>rating</th>
-                                <th>customer_id</th>
-                                <th>feedback_date</th>
+                                <th>Content</th>
+                                <th class="text-center">Category</th>
+                                <th class="text-center">Sentiment</th>
+                                <th class="text-center">Rating</th>
+                                <th>Source</th>
+                                <th>Date</th>
+                                <th class="text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {% for item in feedback_items %}
                             <tr>
-                                <td>Great product, love it!</td>
-                                <td>5</td>
-                                <td>cust123</td>
-                                <td>2023-05-15</td>
+                                <td>
+                                    <div class="text-truncate" style="max-width: 400px;">{{ item.content }}</div>
+                                </td>
+                                <td class="text-center">
+                                    {% if item.category %}
+                                    <span class="badge" style="background-color: 
+                                        {% if item.category.name == 'Positive' %}var(--positive-color)
+                                        {% elif item.category.name == 'Negative' %}var(--negative-color)
+                                        {% elif item.category.name == 'Feature Request' %}var(--feature-color)
+                                        {% elif item.category.name == 'Bug Report' %}var(--bug-color)
+                                        {% else %}var(--neutral-color){% endif %};">
+                                        {{ item.category.name }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Uncategorized</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if item.sentiment_score is not None %}
+                                    <div class="small">
+                                        <div class="progress" style="height: 8px; width: 80px; margin: 0 auto;">
+                                            <div class="progress-bar 
+                                                {% if item.sentiment_score > 0.3 %}bg-success
+                                                {% elif item.sentiment_score < -0.3 %}bg-danger
+                                                {% else %}bg-secondary{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {% if item.sentiment_score > 0 %}{{ item.sentiment_score|floatformat:2|slice:"2:" }}0
+                                                {% elif item.sentiment_score < 0 %}{{ item.sentiment_score|floatformat:2|slice:"3:" }}0
+                                                {% else %}50{% endif %}%">
+                                            </div>
+                                        </div>
+                                        <span>{{ item.sentiment_score|floatformat:2 }}</span>
+                                    </div>
+                                    {% else %}
+                                    <span>-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if item.rating %}
+                                    <div class="stars-container">
+                                        {% for i in "12345" %}
+                                        <i class="{% if forloop.counter <= item.rating %}fas{% else %}far{% endif %} fa-star text-warning"></i>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span>-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill bg-info">{{ item.source.name }}</span>
+                                </td>
+                                <td>
+                                    {% if item.feedback_date %}
+                                    {{ item.feedback_date|date:"M d, Y" }}
+                                    {% else %}
+                                    {{ item.created_at|date:"M d, Y" }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'dashboard:feedback_detail' item.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>App crashes frequently.</td>
-                                <td>2</td>
-                                <td>cust456</td>
-                                <td>2023-05-16</td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No feedback items found</h4>
+                    <p class="text-muted">Try adjusting your filters or upload new feedback data.</p>
+                    <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-upload me-2"></i>Upload Feedback
+                    </a>
+                </div>
+                {% endif %}
                 
-                <a href="#" class="btn btn-success btn-sm mt-3">
-                    <i class="fas fa-download me-2"></i>Download Sample CSV
-                </a>
+                <!-- Pagination -->
+                {% if feedback_items.has_other_pages %}
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Feedback pagination">
+                        <ul class="pagination">
+                            {% if feedback_items.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.previous_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in feedback_items.paginator.page_range %}
+                                {% if feedback_items.number == i %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                                {% elif i > feedback_items.number|add:'-3' and i < feedback_items.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if feedback_items.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.next_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Card View (initially hidden) -->
+            <div class="card-body view-container" id="cardView" style="display: none;">
+                {% if feedback_items %}
+                <div class="row">
+                    {% for item in feedback_items %}
+                    <div class="col-xl-4 col-md-6 mb-4">
+                        <div class="card h-100 border-left-{% if item.category.name == 'Positive' %}success{% elif item.category.name == 'Negative' %}danger{% elif item.category.name == 'Feature Request' %}primary{% elif item.category.name == 'Bug Report' %}warning{% else %}secondary{% endif %}">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                <span class="badge" style="background-color: 
+                                    {% if item.category.name == 'Positive' %}var(--positive-color)
+                                    {% elif item.category.name == 'Negative' %}var(--negative-color)
+                                    {% elif item.category.name == 'Feature Request' %}var(--feature-color)
+                                    {% elif item.category.name == 'Bug Report' %}var(--bug-color)
+                                    {% else %}var(--neutral-color){% endif %};">
+                                    {{ item.category.name }}
+                                </span>
+                                <span class="small text-muted">{{ item.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text" style="max-height: 100px; overflow: hidden;">{{ item.content }}</p>
+                            </div>
+                            <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if item.rating %}
+                                    <div class="stars-container">
+                                        {% for i in "12345" %}
+                                        <i class="{% if forloop.counter <= item.rating %}fas{% else %}far{% endif %} fa-star text-warning"></i>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'dashboard:feedback_detail' item.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye me-1"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination for Card View -->
+                {% if feedback_items.has_other_pages %}
+                <div class="d-flex justify-content-center mt-4">
+                    <nav aria-label="Feedback pagination">
+                        <ul class="pagination">
+                            {% if feedback_items.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.previous_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=cards" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in feedback_items.paginator.page_range %}
+                                {% if feedback_items.number == i %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                                {% elif i > feedback_items.number|add:'-3' and i < feedback_items.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=cards">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if feedback_items.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.next_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=cards" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No feedback items found</h4>
+                    <p class="text-muted">Try adjusting your filters or upload new feedback data.</p>
+                    <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-upload me-2"></i>Upload Feedback
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Compact View (initially hidden) -->
+            <div class="card-body p-0 view-container" id="compactView" style="display: none;">
+                {% if feedback_items %}
+                <div class="list-group list-group-flush">
+                    {% for item in feedback_items %}
+                    <a href="{% url 'dashboard:feedback_detail' item.id %}" class="list-group-item list-group-item-action py-3">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div class="me-2">
+                                <span class="badge" style="background-color: 
+                                    {% if item.category.name == 'Positive' %}var(--positive-color)
+                                    {% elif item.category.name == 'Negative' %}var(--negative-color)
+                                    {% elif item.category.name == 'Feature Request' %}var(--feature-color)
+                                    {% elif item.category.name == 'Bug Report' %}var(--bug-color)
+                                    {% else %}var(--neutral-color){% endif %};">
+                                    {{ item.category.name }}
+                                </span>
+                            </div>
+                            <div class="flex-grow-1 px-3">
+                                <div class="text-truncate" style="max-width: 600px;">{{ item.content }}</div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                {% if item.rating %}
+                                <div class="stars-container me-3">
+                                    {% for i in "12345" %}
+                                    <i class="{% if forloop.counter <= item.rating %}fas{% else %}far{% endif %} fa-star text-warning"></i>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <span class="badge rounded-pill bg-info me-3">{{ item.source.name }}</span>
+                                <small class="text-muted">{{ item.created_at|date:"M d, Y" }}</small>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination for Compact View -->
+                {% if feedback_items.has_other_pages %}
+                <div class="d-flex justify-content-center py-3 bg-light border-top">
+                    <nav aria-label="Feedback pagination">
+                        <ul class="pagination mb-0">
+                            {% if feedback_items.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.previous_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=compact" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for i in feedback_items.paginator.page_range %}
+                                {% if feedback_items.number == i %}
+                                <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                                {% elif i > feedback_items.number|add:'-3' and i < feedback_items.number|add:'3' %}
+                                <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=compact">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if feedback_items.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ feedback_items.next_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.rating %}&rating={{ request.GET.rating }}{% endif %}&view=compact" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No feedback items found</h4>
+                    <p class="text-muted">Try adjusting your filters or upload new feedback data.</p>
+                    <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary mt-3">
+                        <i class="fas fa-upload me-2"></i>Upload Feedback
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Export Options Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--success-color); color: white;">
+                <h5 class="modal-title" id="exportModalLabel">Export Feedback Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm" action="{% url 'dashboard:export_feedback' %}" method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <div class="d-flex">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="format" id="formatCSV" value="csv" checked>
+                                <label class="form-check-label" for="formatCSV">
+                                    <i class="fas fa-file-csv me-1"></i> CSV
+                                </label>
+                            </div>
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="format" id="formatExcel" value="excel">
+                                <label class="form-check-label" for="formatExcel">
+                                    <i class="fas fa-file-excel me-1"></i> Excel
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="format" id="formatJSON" value="json">
+                                <label class="form-check-label" for="formatJSON">
+                                    <i class="fas fa-file-code me-1"></i> JSON
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Data Selection</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="selection" id="selectionAll" value="all" checked>
+                            <label class="form-check-label" for="selectionAll">
+                                Export all feedback items
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="selection" id="selectionFiltered" value="filtered">
+                            <label class="form-check-label" for="selectionFiltered">
+                                Export only filtered items
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Include Fields</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="content" id="fieldContent" checked>
+                                    <label class="form-check-label" for="fieldContent">Content</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="category" id="fieldCategory" checked>
+                                    <label class="form-check-label" for="fieldCategory">Category</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="sentiment" id="fieldSentiment" checked>
+                                    <label class="form-check-label" for="fieldSentiment">Sentiment Score</label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="rating" id="fieldRating" checked>
+                                    <label class="form-check-label" for="fieldRating">Rating</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="source" id="fieldSource" checked>
+                                    <label class="form-check-label" for="fieldSource">Source</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="fields" value="date" id="fieldDate" checked>
+                                    <label class="form-check-label" for="fieldDate">Date</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden fields to pass current filters -->
+                    <input type="hidden" name="source" value="{{ request.GET.source }}">
+                    <input type="hidden" name="category" value="{{ request.GET.category }}">
+                    <input type="hidden" name="rating" value="{{ request.GET.rating }}">
+                    <input type="hidden" name="date_range" value="{{ request.GET.date_range }}">
+                    <input type="hidden" name="date_from" value="{{ request.GET.date_from }}">
+                    <input type="hidden" name="date_to" value="{{ request.GET.date_to }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="exportSubmitBtn">
+                    <i class="fas fa-download me-1"></i> Export Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Star Rating Styles */
+    .stars-container {
+        display: inline-block;
+        font-size: 0.8rem;
+    }
+    
+    /* View Toggle Styles */
+    .view-option.active {
+        font-weight: bold;
+        background-color: #f8f9fc;
+    }
+    
+    /* Table Styles */
+    #feedbackTable td {
+        vertical-align: middle;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // Filter panel toggle
+        const filterToggleBtn = document.getElementById('filterToggleBtn');
+        const filterPanel = document.getElementById('filterPanel');
+        
+        if (filterToggleBtn && filterPanel) {
+            filterToggleBtn.addEventListener('click', function() {
+                if (filterPanel.style.display === 'none') {
+                    filterPanel.style.display = 'block';
+                    filterToggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Hide Filters';
+                } else {
+                    filterPanel.style.display = 'none';
+                    filterToggleBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Filters';
+                }
+            });
+            
+            // Show filter panel if filters are applied
+            {% if filters_applied %}
+            filterPanel.style.display = 'block';
+            filterToggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Hide Filters';
+            {% endif %}
+        }
+        
+        // Custom date range toggle
+        const dateRangeFilter = document.getElementById('dateRangeFilter');
+        const customDateRange = document.getElementById('customDateRange');
+        
+        if (dateRangeFilter && customDateRange) {
+            dateRangeFilter.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customDateRange.style.display = 'flex';
+                } else {
+                    customDateRange.style.display = 'none';
+                }
+            });
+            
+            // Show custom date range if selected
+            if (dateRangeFilter.value === 'custom') {
+                customDateRange.style.display = 'flex';
+            }
+        }
+        
+        // View toggle
+        const viewOptions = document.querySelectorAll('.view-option');
+        const viewContainers = document.querySelectorAll('.view-container');
+        
+        viewOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all options
+                viewOptions.forEach(opt => opt.classList.remove('active'));
+                
+                // Add active class to clicked option
+                this.classList.add('active');
+                
+                // Hide all view containers
+                viewContainers.forEach(container => container.style.display = 'none');
+                
+                // Show selected view container
+                const viewType = this.getAttribute('data-view');
+                document.getElementById(viewType + 'View').style.display = 'block';
+                
+                // Store preference in localStorage
+                localStorage.setItem('preferredView', viewType);
+            });
+        });
+        
+        // Check for stored view preference
+        const preferredView = localStorage.getItem('preferredView');
+        if (preferredView) {
+            const preferredOption = document.querySelector(`.view-option[data-view="${preferredView}"]`);
+            if (preferredOption) {
+                // Simulate click on the preferred option
+                preferredOption.click();
+            }
+        }
+        
+        // Export button
+        const exportFeedbackBtn = document.getElementById('exportFeedbackBtn');
+        const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+        
+        if (exportFeedbackBtn) {
+            exportFeedbackBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                exportModal.show();
+            });
+        }
+        
+        // Export submit button
+        const exportSubmitBtn = document.getElementById('exportSubmitBtn');
+        const exportForm = document.getElementById('exportForm');
+        
+        if (exportSubmitBtn && exportForm) {
+            exportSubmitBtn.addEventListener('click', function() {
+                exportForm.submit();
+            });
+        }
+        
+        // Row animations
+        const tableRows = document.querySelectorAll('#feedbackTable tbody tr');
+        tableRows.forEach((row, index) => {
+            row.style.animation = `fadeIn 0.3s ease-out ${index * 0.05}s forwards`;
+            row.style.opacity = 0;
+        });
+        
+        // Card animations
+        const feedbackCards = document.querySelectorAll('#cardView .card');
+        feedbackCards.forEach((card, index) => {
+            card.style.animation = `fadeIn 0.3s ease-out ${index * 0.05}s forwards`;
+            card.style.opacity = 0;
+        });
+    });
+    
+    // Add keyframe animation for fading in rows
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+    `);
+</script>
 {% endblock %}

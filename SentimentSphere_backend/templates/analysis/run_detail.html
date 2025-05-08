@@ -15,14 +15,26 @@
         <a href="{% url 'analysis:run_list' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Runs
         </a>
+<div class="dropdown d-inline-block">
+    <button class="btn btn-success dropdown-toggle shadow-sm" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-download fa-sm text-white-50 me-2"></i>Export
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+        <li><a class="dropdown-item" href="{% url 'analysis:download_results' run.id %}?format=csv">CSV Format</a></li>
+        <li><a class="dropdown-item" href="{% url 'analysis:download_results' run.id %}?format=json">JSON Format</a></li>
+        <li><a class="dropdown-item" href="{% url 'analysis:download_results' run.id %}?format=excel">Excel Format</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="#" id="exportChart">Chart Image</a></li>
+    </ul>
+</div>
     </div>
 </div>
 
 <div class="row">
     <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Run Information</h6>
+        <div class="card shadow mb-4 border-left-primary" style="border-left: 0.25rem solid var(--primary-color) !important;">
+            <div class="card-header py-3" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Run Information</h6>
             </div>
             <div class="card-body">
                 <div class="row mb-3">
@@ -43,11 +55,11 @@
                         {% if run.status == 'pending' %}
                         <span class="badge bg-secondary">Pending</span>
                         {% elif run.status == 'in_progress' %}
-                        <span class="badge bg-primary">In Progress</span>
+                        <span class="badge" style="background-color: var(--info-color);">In Progress</span>
                         {% elif run.status == 'completed' %}
-                        <span class="badge bg-success">Completed</span>
+                        <span class="badge" style="background-color: var(--success-color);">Completed</span>
                         {% elif run.status == 'failed' %}
-                        <span class="badge bg-danger">Failed</span>
+                        <span class="badge" style="background-color: var(--danger-color);">Failed</span>
                         {% endif %}
                     </div>
                 </div>
@@ -80,14 +92,13 @@
                 </div>
                 {% endif %}
                 
-                <div class="progress mb-4">
+                <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
                     <div class="progress-bar 
-                        {% if run.status == 'completed' %}bg-success
-                        {% elif run.status == 'failed' %}bg-danger
-                        {% else %}bg-primary{% endif %}" 
+                        {% if run.status == 'completed' %}" style="background-color: var(--success-color);"
+                        {% elif run.status == 'failed' %}" style="background-color: var(--danger-color);"
+                        {% else %}" style="background-color: var(--info-color);"{% endif %} 
                         role="progressbar" style="width: {{ run.progress_percentage }}%"
                         aria-valuenow="{{ run.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
-                        {{ run.progress_percentage }}%
                     </div>
                 </div>
                 
@@ -101,13 +112,13 @@
             </div>
         </div>
         
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Prompt Used</h6>
+        <div class="card shadow mb-4 border-left-info" style="border-left: 0.25rem solid var(--secondary-color) !important;">
+            <div class="card-header py-3" style="background-color: var(--secondary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Prompt Used</h6>
             </div>
             <div class="card-body">
-                <div class="alert alert-secondary">
-                    <pre class="mb-0" style="white-space: pre-wrap;">{{ run.prompt.prompt_template }}</pre>
+                <div class="alert" style="background-color: #f8f9fa; border-color: #e3e6f0;">
+                    <pre class="mb-0" style="white-space: pre-wrap; color: #5a5c69;">{{ run.prompt.prompt_template }}</pre>
                 </div>
                 {% if run.prompt.description %}
                 <div class="mt-3">
@@ -117,23 +128,72 @@
                 {% endif %}
             </div>
         </div>
+        
+        <!-- New summary card -->
+        <div class="card shadow mb-4 border-left-warning" style="border-left: 0.25rem solid var(--warning-color) !important;">
+            <div class="card-header py-3" style="background-color: var(--warning-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Quick Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="mb-1" style="font-size: 24px; font-weight: 700; color: var(--positive-color);">
+                            {{ feedback_items|filter_by_category:"Positive"|length }}
+                        </div>
+                        <div class="small text-muted">Positive</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-1" style="font-size: 24px; font-weight: 700; color: var(--negative-color);">
+                            {{ feedback_items|filter_by_category:"Negative"|length }}
+                        </div>
+                        <div class="small text-muted">Negative</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-1" style="font-size: 24px; font-weight: 700; color: var(--neutral-color);">
+                            {{ feedback_items|filter_by_category:"Neutral"|length }}
+                        </div>
+                        <div class="small text-muted">Neutral</div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="mb-1" style="font-size: 24px; font-weight: 700; color: var(--feature-color);">
+                            {{ feedback_items|filter_by_category:"Feature Request"|length }}
+                        </div>
+                        <div class="small text-muted">Feature Requests</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-1" style="font-size: 24px; font-weight: 700; color: var(--bug-color);">
+                            {{ feedback_items|filter_by_category:"Bug Report"|length }}
+                        </div>
+                        <div class="small text-muted">Bug Reports</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="col-lg-8">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Results</h6>
+            <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--info-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Results</h6>
+                <div>
+                    <button class="btn btn-sm btn-outline-light" id="viewToggleBtn">
+                        <i class="fas fa-chart-pie me-1"></i> Toggle View
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <!-- Sentiment Distribution Charts -->
-                <div class="row">
+                <div class="row" id="chartsView">
                     <div class="col-md-6">
                         <div class="card mb-4">
-                            <div class="card-header py-3">
+                            <div class="card-header py-3" style="background-color: #f8f9fc;">
                                 <h6 class="m-0 font-weight-bold text-primary">Sentiment Distribution</h6>
                             </div>
                             <div class="card-body">
-                                <div class="chart-pie pt-4 pb-2">
+                                <div class="chart-pie pt-4 pb-2" style="height: 250px;">
                                     <canvas id="sentimentPieChart"></canvas>
                                 </div>
                             </div>
@@ -141,11 +201,11 @@
                     </div>
                     <div class="col-md-6">
                         <div class="card mb-4">
-                            <div class="card-header py-3">
+                            <div class="card-header py-3" style="background-color: #f8f9fc;">
                                 <h6 class="m-0 font-weight-bold text-primary">Sentiment Scores</h6>
                             </div>
                             <div class="card-body">
-                                <div class="chart-bar">
+                                <div class="chart-bar" style="height: 250px;">
                                     <canvas id="sentimentScoreChart"></canvas>
                                 </div>
                             </div>
@@ -155,13 +215,13 @@
                 
                 <!-- Feedback Items Table -->
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
+                    <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                        <thead style="background-color: #f8f9fc;">
                             <tr>
                                 <th>Content</th>
-                                <th>Category</th>
-                                <th>Sentiment</th>
-                                <th>Rating</th>
+                                <th width="120">Category</th>
+                                <th width="120">Sentiment</th>
+                                <th width="80">Rating</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,7 +230,12 @@
                                 <td>{{ item.content|truncatechars:100 }}</td>
                                 <td>
                                     {% if item.category %}
-                                    <span class="badge bg-{% if item.category.name == 'Positive' %}success{% elif item.category.name == 'Negative' %}danger{% elif item.category.name == 'Feature Request' %}primary{% elif item.category.name == 'Bug Report' %}warning{% else %}secondary{% endif %}">
+                                    <span class="badge" style="background-color: 
+                                        {% if item.category.name == 'Positive' %}var(--positive-color)
+                                        {% elif item.category.name == 'Negative' %}var(--negative-color)
+                                        {% elif item.category.name == 'Feature Request' %}var(--feature-color)
+                                        {% elif item.category.name == 'Bug Report' %}var(--bug-color)
+                                        {% else %}var(--neutral-color){% endif %};">
                                         {{ item.category.name }}
                                     </span>
                                     {% else %}
@@ -179,13 +244,15 @@
                                 </td>
                                 <td>
                                     {% if item.sentiment_score %}
-                                    <div class="progress">
-                                        <div class="progress-bar 
-                                            {% if item.sentiment_score > 0 %}bg-success
-                                            {% elif item.sentiment_score < 0 %}bg-danger
-                                            {% else %}bg-secondary{% endif %}" 
-                                            role="progressbar" 
-                                            style="width: {% if item.sentiment_score > 0 %}{{ item.sentiment_score|floatformat:2|slice:"2:" }}0{% elif item.sentiment_score < 0 %}{{ item.sentiment_score|floatformat:2|slice:"3:" }}0{% else %}50{% endif %}%">
+                                    <div class="progress" style="height: 20px; border-radius: 3px;">
+                                        <div class="progress-bar" 
+                                            style="{% if item.sentiment_score > 0 %}background-color: var(--positive-color);
+                                            {% elif item.sentiment_score < 0 %}background-color: var(--negative-color);
+                                            {% else %}background-color: var(--neutral-color);{% endif %}
+                                            width: {% if item.sentiment_score > 0 %}{{ item.sentiment_score|floatformat:2|slice:"2:" }}0
+                                            {% elif item.sentiment_score < 0 %}{{ item.sentiment_score|floatformat:2|slice:"3:" }}0
+                                            {% else %}50{% endif %}%"
+                                            role="progressbar">
                                             {{ item.sentiment_score|floatformat:2 }}
                                         </div>
                                     </div>
@@ -193,8 +260,199 @@
                                     -
                                     {% endif %}
                                 </td>
-                                <td>{{ item.rating }}</td>
+                                <td class="text-center">
+                                    {% if item.rating %}
+                                    <span class="badge rounded-pill" style="background-color: 
+                                        {% if item.rating >= 4 %}var(--positive-color)
+                                        {% elif item.rating <= 2 %}var(--negative-color)
+                                        {% else %}var(--neutral-color){% endif %};">
+                                        {{ item.rating }}
+                                    </span>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center">No processed feedback items yet.</td>
+                                <td colspan="4" class="text-center py-4">
+                                    <i class="fas fa-inbox fa-3x text-light mb-3"></i>
+                                    <p class="text-muted">No processed feedback items yet.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between chart view and table view
+    const viewToggleBtn = document.getElementById('viewToggleBtn');
+    const chartsView = document.getElementById('chartsView');
+    
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', function() {
+            if (chartsView.style.display === 'none') {
+                chartsView.style.display = 'flex';
+                viewToggleBtn.innerHTML = '<i class="fas fa-table me-1"></i> Table View';
+            } else {
+                chartsView.style.display = 'none';
+                viewToggleBtn.innerHTML = '<i class="fas fa-chart-pie me-1"></i> Chart View';
+            }
+        });
+    }
+    
+    // Auto refresh for in-progress runs
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            location.reload();
+        });
+        
+        // Auto refresh every 30 seconds for in-progress runs
+        {% if run.status == 'in_progress' %}
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+        {% endif %}
+    }
+    
+    // Sentiment Distribution Chart
+    const sentimentPieCtx = document.getElementById('sentimentPieChart');
+    if (sentimentPieCtx) {
+        // Count feedback items by category
+        const categories = {};
+        {% for item in feedback_items %}
+            {% if item.category %}
+                if (!categories['{{ item.category.name }}']) {
+                    categories['{{ item.category.name }}'] = 0;
+                }
+                categories['{{ item.category.name }}'] += 1;
+            {% endif %}
+        {% endfor %}
+        
+        // Define category names and colors
+        const categoryNames = Object.keys(categories);
+        const categoryColors = {
+            'Positive': 'rgba(0, 137, 123, 0.8)',
+            'Negative': 'rgba(198, 40, 40, 0.8)',
+            'Neutral': 'rgba(120, 144, 156, 0.8)',
+            'Feature Request': 'rgba(123, 31, 162, 0.8)',
+            'Bug Report': 'rgba(255, 143, 0, 0.8)'
+        };
+        
+        // Create chart
+        new Chart(sentimentPieCtx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryNames,
+                datasets: [{
+                    data: categoryNames.map(name => categories[name]),
+                    backgroundColor: categoryNames.map(name => categoryColors[name] || 'rgba(57, 73, 171, 0.8)'),
+                    borderWidth: 1,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Sentiment Scores Chart
+    const sentimentScoreCtx = document.getElementById('sentimentScoreChart');
+    if (sentimentScoreCtx) {
+        // Collect sentiment scores and truncated content
+        const scores = [];
+        const contents = [];
+        
+        {% for item in feedback_items %}
+            {% if item.sentiment_score %}
+                scores.push({{ item.sentiment_score }});
+                contents.push("{{ item.content|truncatechars:20|escapejs }}");
+            {% endif %}
+        {% endfor %}
+        
+        // Create chart
+        new Chart(sentimentScoreCtx, {
+            type: 'bar',
+            data: {
+                labels: contents,
+                datasets: [{
+                    label: 'Sentiment Score',
+                    data: scores,
+                    backgroundColor: scores.map(score => 
+                        score > 0.3 ? 'rgba(0, 137, 123, 0.8)' : 
+                        (score < -0.3 ? 'rgba(198, 40, 40, 0.8)' : 'rgba(120, 144, 156, 0.8)')
+                    ),
+                    borderWidth: 1,
+                    borderColor: scores.map(score => 
+                        score > 0.3 ? 'rgba(0, 137, 123, 1)' : 
+                        (score < -0.3 ? 'rgba(198, 40, 40, 1)' : 'rgba(120, 144, 156, 1)')
+                    ),
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: -1,
+                        max: 1,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 90,
+                            minRotation: 45
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
