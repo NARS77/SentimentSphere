@@ -1,106 +1,802 @@
 {% extends 'base.html' %}
+{% load dashboard_filters %}
 
-{% block title %}Analyze Batch - SentimentSphere{% endblock %}
+{% block title %}Feedback Batches - SentimentSphere{% endblock %}
 
-{% block runs_active %}active{% endblock %}
+{% block batches_active %}active{% endblock %}
 
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Analyze Feedback Batch</h1>
-    <a href="{% url 'dashboard:batch_list' %}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
-        <i class="fas fa-arrow-left fa-sm text-white-50 me-2"></i>Back to Batches
-    </a>
+    <h1 class="h3 mb-0 text-gray-800">Feedback Batches</h1>
+    <div>
+        <a href="#" id="exportBatchesBtn" class="d-none d-sm-inline-block btn btn-outline-success shadow-sm me-2">
+            <i class="fas fa-file-export fa-sm me-2"></i>Export List
+        </a>
+        <a href="{% url 'analysis:upload_batch' %}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+            <i class="fas fa-upload fa-sm text-white-50 me-2"></i>Upload New Batch
+        </a>
+    </div>
 </div>
 
+<!-- Batch Summary Cards -->
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Batch Analysis Settings</h6>
-            </div>
+    <!-- Total Batches Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
             <div class="card-body">
-                <div class="mb-4">
-                    <h5>Batch Information</h5>
-                    <div class="row mb-3">
-                        <div class="col-md-3 fw-bold">Batch Name:</div>
-                        <div class="col-md-9">{{ batch.name }}</div>
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--primary-color);">
+                            Total Batches
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ batches|length }}</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3 fw-bold">Source:</div>
-                        <div class="col-md-9">{{ batch.source.name }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3 fw-bold">Upload Date:</div>
-                        <div class="col-md-9">{{ batch.upload_date|date:"F d, Y H:i" }}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-3 fw-bold">Items:</div>
-                        <div class="col-md-9">{{ batch.total_items }}</div>
+                    <div class="col-auto">
+                        <i class="fas fa-layer-group fa-2x" style="color: var(--primary-color); opacity: 0.2;"></i>
                     </div>
                 </div>
-                
-                <hr>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-4">
-                        <h5>Select Analysis Prompt</h5>
-                        <div class="mb-3">
-                            <label for="{{ form.prompt.id_for_label }}" class="form-label">Prompt Template</label>
-                            {{ form.prompt }}
-                            {% if form.prompt.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.prompt.errors.0 }}
-                            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Items Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--info-color);">
+                            Total Feedback Items
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_items|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-comments fa-2x" style="color: var(--info-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processed Batches Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--success-color);">
+                            Processed Batches
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ processed_batches|default:"0" }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x" style="color: var(--success-color); opacity: 0.2;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Average Sentiment Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: var(--warning-color);">
+                            Average Sentiment
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% if avg_sentiment %}
+                                {{ avg_sentiment|floatformat:2 }}
+                            {% else %}
+                                N/A
                             {% endif %}
-                            <div class="form-text">Select the prompt template to use for analyzing this feedback batch.</div>
-                        </div>
-                        
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Analysis will be performed using the OpenAI API and may take some time depending on the batch size.
                         </div>
                     </div>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-play-circle me-2"></i>Start Analysis
-                        </button>
+                    <div class="col-auto">
+                        <i class="fas fa-smile fa-2x" style="color: var(--warning-color); opacity: 0.2;"></i>
                     </div>
-                </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: white;">
+        <h6 class="m-0 font-weight-bold">Feedback Batches</h6>
+        <div>
+            <button class="btn btn-sm btn-light" id="filterToggleBtn">
+                <i class="fas fa-filter me-1"></i> Filters
+            </button>
+            <div class="dropdown d-inline-block ms-2">
+                <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="viewToggleBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-th-list me-1"></i> View
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="viewToggleBtn">
+                    <li><a class="dropdown-item view-option active" data-view="table" href="#"><i class="fas fa-table me-2"></i>Table View</a></li>
+                    <li><a class="dropdown-item view-option" data-view="cards" href="#"><i class="fas fa-th-large me-2"></i>Card View</a></li>
+                </ul>
             </div>
         </div>
     </div>
     
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">About Analysis</h6>
+    <!-- Filter Panel -->
+    <div class="card-body py-3 bg-light border-bottom" id="filterPanel" style="display: none;">
+        <form id="batchFilterForm" method="get" action="{% url 'dashboard:batch_list' %}">
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Source</label>
+                    <select name="source" class="form-select form-select-sm" id="sourceFilter">
+                        <option value="">All Sources</option>
+                        {% for source in sources %}
+                            <option value="{{ source.id }}" {% if request.GET.source == source.id|stringformat:"i" %}selected{% endif %}>
+                                {{ source.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select form-select-sm" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="processed" {% if request.GET.status == 'processed' %}selected{% endif %}>Processed</option>
+                        <option value="unprocessed" {% if request.GET.status == 'unprocessed' %}selected{% endif %}>Unprocessed</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">Date Range</label>
+                    <select name="date_range" class="form-select form-select-sm" id="dateRangeFilter">
+                        <option value="">All Time</option>
+                        <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>Today</option>
+                        <option value="week" {% if request.GET.date_range == 'week' %}selected{% endif %}>This Week</option>
+                        <option value="month" {% if request.GET.date_range == 'month' %}selected{% endif %}>This Month</option>
+                        <option value="custom" {% if request.GET.date_range == 'custom' %}selected{% endif %}>Custom Range</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6 d-flex align-items-end">
+                    <div class="d-grid w-100">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search me-1"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <h5>What to Expect</h5>
-                <p>When you start the analysis:</p>
-                <ul>
-                    <li>Each feedback item will be processed using OpenAI's GPT model</li>
-                    <li>The system will categorize feedback into sentiment categories (Positive, Negative, Neutral, Feature Request, Bug Report)</li>
-                    <li>A sentiment score (-1 to 1) will be calculated for each item</li>
-                    <li>Progress can be monitored on the Analysis Runs page</li>
-                    <li>Results will be available for download once processing is complete</li>
-                </ul>
-                
-                <h5>Best Practices</h5>
-                <ul>
-                    <li>Use specific prompt templates for different types of feedback</li>
-                    <li>For large batches, expect processing to take some time</li>
-                    <li>The more clear and concise your prompt template, the better the results</li>
-                </ul>
-                
-                <a href="{% url 'analysis:prompt_list' %}" class="btn btn-secondary btn-sm mt-3">
-                    <i class="fas fa-terminal me-2"></i>Manage Prompts
+            
+            <!-- Custom Date Range (initially hidden) -->
+            <div class="row mt-3" id="customDateRange" style="display: none;">
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">From Date</label>
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request.GET.date_from }}">
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label class="form-label">To Date</label>
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request.GET.date_to }}">
+                </div>
+            </div>
+            
+            {% if filters_applied %}
+            <div class="mt-3 d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    <i class="fas fa-filter me-1"></i> Filtered results: <strong>{{ batches|length }}</strong> batches
+                </div>
+                <a href="{% url 'dashboard:batch_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i> Clear Filters
                 </a>
             </div>
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- Table View -->
+    <div class="card-body view-container" id="tableView">
+        {% if batches %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="batchesTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Source</th>
+                        <th class="text-center">Items</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Sentiment</th>
+                        <th>Upload Date</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for batch in batches %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'dashboard:batch_detail' batch.id %}" class="fw-bold text-primary">
+                                {{ batch.name }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill bg-info">{{ batch.source.name }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary rounded-pill">{{ batch.item_count }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if batch.processed %}
+                                <span class="badge bg-success">Processed</span>
+                            {% else %}
+                                <span class="badge bg-warning">Not Processed</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if batch.avg_sentiment %}
+                            <div class="progress" style="height: 8px; width: 80px; margin: 0 auto;">
+                                <div class="progress-bar 
+                                    {% if batch.avg_sentiment > 0.3 %}bg-success
+                                    {% elif batch.avg_sentiment < -0.3 %}bg-danger
+                                    {% else %}bg-secondary{% endif %}" 
+                                    role="progressbar" 
+                                    style="width: {% if batch.avg_sentiment > 0 %}{{ batch.avg_sentiment|floatformat:2|slice:"2:" }}0
+                                    {% elif batch.avg_sentiment < 0 %}{{ batch.avg_sentiment|floatformat:2|slice:"3:" }}0
+                                    {% else %}50{% endif %}%">
+                                </div>
+                            </div>
+                            <span class="small">{{ batch.avg_sentiment|floatformat:2 }}</span>
+                            {% else %}
+                            <span>-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ batch.upload_date|date:"M d, Y" }}</td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="{% url 'dashboard:batch_detail' batch.id %}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not batch.processed %}
+                                <a href="{% url 'analysis:analyze_batch' batch.id %}" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="Analyze Batch">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBatchModal{{ batch.id }}" title="Delete Batch">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Delete Confirmation Modal -->
+                            <div class="modal fade" id="deleteBatchModal{{ batch.id }}" tabindex="-1" aria-labelledby="deleteBatchModalLabel{{ batch.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title" id="deleteBatchModalLabel{{ batch.id }}">Delete Batch</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the batch <strong>"{{ batch.name }}"</strong>?</p>
+                                            <p class="text-danger"><strong>Warning:</strong> This action cannot be undone and will delete all feedback items in this batch.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form action="{% url 'dashboard:batch_delete' batch.id %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Delete Batch</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-layer-group fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No batches found</h4>
+            <p class="text-muted">Try adjusting your filters or upload a new batch of feedback.</p>
+            <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-upload me-2"></i>Upload New Batch
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Pagination -->
+        {% if batches.has_other_pages %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Batch pagination">
+                <ul class="pagination">
+                    {% if batches.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ batches.previous_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in batches.paginator.page_range %}
+                        {% if batches.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > batches.number|add:'-3' and i < batches.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if batches.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ batches.next_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Card View (initially hidden) -->
+    <div class="card-body view-container" id="cardView" style="display: none;">
+        {% if batches %}
+        <div class="row">
+            {% for batch in batches %}
+            <div class="col-xl-4 col-md-6 mb-4">
+                <div class="card h-100 border-left-{% if batch.processed %}success{% else %}warning{% endif %}">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">{{ batch.name }}</h6>
+                        <span class="badge {% if batch.processed %}bg-success{% else %}bg-warning{% endif %}">
+                            {% if batch.processed %}Processed{% else %}Not Processed{% endif %}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge rounded-pill bg-info px-3 py-2">{{ batch.source.name }}</span>
+                            <span class="text-muted">{{ batch.upload_date|date:"M d, Y" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Items:</span>
+                                <span class="fw-bold">{{ batch.item_count }}</span>
+                            </div>
+                            {% if batch.avg_sentiment %}
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Avg. Sentiment:</span>
+                                <span class="fw-bold {% if batch.avg_sentiment > 0.3 %}text-success{% elif batch.avg_sentiment < -0.3 %}text-danger{% endif %}">
+                                    {{ batch.avg_sentiment|floatformat:2 }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Sentiment Distribution (if available) -->
+                        {% if batch.positive_count or batch.negative_count %}
+                        <div class="mb-3">
+                            <div class="small text-muted mb-1">Sentiment Distribution:</div>
+                            <div class="progress" style="height: 10px;">
+                                {% if batch.positive_count %}
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ batch.positive_count|percentage_of:batch.item_count }}%" 
+                                     aria-valuenow="{{ batch.positive_count }}" aria-valuemin="0" aria-valuemax="{{ batch.item_count }}"
+                                     data-bs-toggle="tooltip" title="Positive: {{ batch.positive_count }}">
+                                </div>
+                                {% endif %}
+                                
+                                {% if batch.neutral_count %}
+                                <div class="progress-bar bg-secondary" role="progressbar" 
+                                     style="width: {{ batch.neutral_count|percentage_of:batch.item_count }}%" 
+                                     aria-valuenow="{{ batch.neutral_count }}" aria-valuemin="0" aria-valuemax="{{ batch.item_count }}"
+                                     data-bs-toggle="tooltip" title="Neutral: {{ batch.neutral_count }}">
+                                </div>
+                                {% endif %}
+                                
+                                {% if batch.negative_count %}
+                                <div class="progress-bar bg-danger" role="progressbar" 
+                                     style="width: {{ batch.negative_count|percentage_of:batch.item_count }}%" 
+                                     aria-valuenow="{{ batch.negative_count }}" aria-valuemin="0" aria-valuemax="{{ batch.item_count }}"
+                                     data-bs-toggle="tooltip" title="Negative: {{ batch.negative_count }}">
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex justify-content-between mt-1">
+                                <span class="small text-success">+{{ batch.positive_count|default:"0" }}</span>
+                                <span class="small text-secondary">{{ batch.neutral_count|default:"0" }}</span>
+                                <span class="small text-danger">-{{ batch.negative_count|default:"0" }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{% url 'dashboard:batch_detail' batch.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                            {% if not batch.processed %}
+                            <a href="{% url 'analysis:analyze_batch' batch.id %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-play me-1"></i> Analyze
+                            </a>
+                            {% endif %}
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBatchModalCard{{ batch.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        
+                        <!-- Delete Modal for Card View -->
+                        <div class="modal fade" id="deleteBatchModalCard{{ batch.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">Delete Batch</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete the batch <strong>"{{ batch.name }}"</strong>?</p>
+                                        <p class="text-danger"><strong>Warning:</strong> This action cannot be undone and will delete all feedback items in this batch.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <form action="{% url 'dashboard:batch_delete' batch.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Delete Batch</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination for Card View -->
+        {% if batches.has_other_pages %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Batch pagination">
+                <ul class="pagination">
+                    {% if batches.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ batches.previous_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}&view=cards" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in batches.paginator.page_range %}
+                        {% if batches.number == i %}
+                        <li class="page-item active"><a class="page-link" href="#">{{ i }}</a></li>
+                        {% elif i > batches.number|add:'-3' and i < batches.number|add:'3' %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}&view=cards">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if batches.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ batches.next_page_number }}{% if request.GET.source %}&source={{ request.GET.source }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}&view=cards" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-layer-group fa-4x text-muted mb-3"></i>
+            <h4 class="text-muted">No batches found</h4>
+            <p class="text-muted">Try adjusting your filters or upload a new batch of feedback.</p>
+            <a href="{% url 'analysis:upload_batch' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-upload me-2"></i>Upload New Batch
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
-{% endblock %}
+
+<!-- Export Options Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--success-color); color: white;">
+                <h5 class="modal-title" id="exportModalLabel">Export Batches List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="exportForm" action="{% url 'dashboard:export_batches' %}" method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Export Format</label>
+                        <div class="d-flex">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="format" id="formatCSV" value="csv" checked>
+                                <label class="form-check-label" for="formatCSV">
+                                    <i class="fas fa-file-csv me-1"></i> CSV
+                                </label>
+                            </div>
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="format" id="formatExcel" value="excel">
+                                <label class="form-check-label" for="formatExcel">
+                                    <i class="fas fa-file-excel me-1"></i> Excel
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="format" id="formatJSON" value="json">
+                                <label class="form-check-label" for="formatJSON">
+                                    <i class="fas fa-file-code me-1"></i> JSON
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Data Selection</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="selection
+                            <div class="mb-3">
+                                <label class="form-label">Data Selection</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="selection" id="selectionAll" value="all" checked>
+                                    <label class="form-check-label" for="selectionAll">
+                                        All batches
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="selection" id="selectionFiltered" value="filtered">
+                                    <label class="form-check-label" for="selectionFiltered">
+                                        Currently filtered batches
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="selection" id="selectionSelected" value="selected">
+                                    <label class="form-check-label" for="selectionSelected">
+                                        Selected batches only
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Include Data</label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="includeStats" name="include_stats" checked>
+                                    <label class="form-check-label" for="includeStats">Batch statistics</label>
+                                </div>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" id="includeItems" name="include_items">
+                                    <label class="form-check-label" for="includeItems">Feedback items</label>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i> Including feedback items may result in a larger file size.
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="exportSubmitBtn">
+                            <i class="fas fa-file-export me-1"></i> Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endblock %}
+        
+        {% block extra_js %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize tooltips
+                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function(tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+                
+                // Filter panel toggle
+                const filterToggleBtn = document.getElementById('filterToggleBtn');
+                const filterPanel = document.getElementById('filterPanel');
+                
+                filterToggleBtn.addEventListener('click', function() {
+                    if (filterPanel.style.display === 'none') {
+                        filterPanel.style.display = 'block';
+                        filterToggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Hide Filters';
+                    } else {
+                        filterPanel.style.display = 'none';
+                        filterToggleBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Filters';
+                    }
+                });
+                
+                // Show/hide custom date range based on selection
+                const dateRangeFilter = document.getElementById('dateRangeFilter');
+                const customDateRange = document.getElementById('customDateRange');
+                
+                // Initialize on page load
+                if (dateRangeFilter.value === 'custom') {
+                    customDateRange.style.display = 'flex';
+                }
+                
+                dateRangeFilter.addEventListener('change', function() {
+                    if (this.value === 'custom') {
+                        customDateRange.style.display = 'flex';
+                    } else {
+                        customDateRange.style.display = 'none';
+                    }
+                });
+                
+                // View toggle functionality
+                const viewOptions = document.querySelectorAll('.view-option');
+                const tableView = document.getElementById('tableView');
+                const cardView = document.getElementById('cardView');
+                
+                // Get view preference from URL or localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const viewParam = urlParams.get('view');
+                
+                // Check if view parameter exists in URL
+                if (viewParam === 'cards') {
+                    tableView.style.display = 'none';
+                    cardView.style.display = 'block';
+                    document.querySelector('[data-view="table"]').classList.remove('active');
+                    document.querySelector('[data-view="cards"]').classList.add('active');
+                    localStorage.setItem('preferredView', 'cards');
+                } else if (!viewParam) {
+                    // Check localStorage if no URL parameter
+                    const storedView = localStorage.getItem('preferredView');
+                    if (storedView === 'cards') {
+                        tableView.style.display = 'none';
+                        cardView.style.display = 'block';
+                        document.querySelector('[data-view="table"]').classList.remove('active');
+                        document.querySelector('[data-view="cards"]').classList.add('active');
+                    }
+                }
+                
+                // View switching
+                viewOptions.forEach(option => {
+                    option.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const view = this.getAttribute('data-view');
+                        
+                        // Remove active class from all options
+                        viewOptions.forEach(opt => opt.classList.remove('active'));
+                        
+                        // Add active class to clicked option
+                        this.classList.add('active');
+                        
+                        // Show/hide appropriate view
+                        if (view === 'table') {
+                            tableView.style.display = 'block';
+                            cardView.style.display = 'none';
+                            localStorage.setItem('preferredView', 'table');
+                        } else if (view === 'cards') {
+                            tableView.style.display = 'none';
+                            cardView.style.display = 'block';
+                            localStorage.setItem('preferredView', 'cards');
+                        }
+                    });
+                });
+                
+                // Export functionality
+                const exportBatchesBtn = document.getElementById('exportBatchesBtn');
+                const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+                const exportSubmitBtn = document.getElementById('exportSubmitBtn');
+                const exportForm = document.getElementById('exportForm');
+                
+                exportBatchesBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    exportModal.show();
+                });
+                
+                exportSubmitBtn.addEventListener('click', function() {
+                    // Add the current filter parameters to the export form
+                    const currentFilters = new URLSearchParams(window.location.search);
+                    
+                    // Only append filtered parameters if the "filtered" option is selected
+                    if (document.getElementById('selectionFiltered').checked) {
+                        currentFilters.forEach((value, key) => {
+                            if (key !== 'page' && key !== 'view') {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = key;
+                                input.value = value;
+                                exportForm.appendChild(input);
+                            }
+                        });
+                    }
+                    
+                    // Submit the form
+                    exportForm.submit();
+                    
+                    // Hide the modal
+                    exportModal.hide();
+                });
+                
+                // Batch selection for table rows (for "Selected batches only" export option)
+                const tableRows = document.querySelectorAll('#batchesTable tbody tr');
+                
+                tableRows.forEach(row => {
+                    row.addEventListener('click', function(e) {
+                        // Don't select when clicking on buttons or links
+                        if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || 
+                            e.target.closest('button') || e.target.closest('a')) {
+                            return;
+                        }
+                        
+                        // Toggle selected class
+                        this.classList.toggle('table-active');
+                        
+                        // Count selected rows
+                        const selectedCount = document.querySelectorAll('#batchesTable tbody tr.table-active').length;
+                        
+                        // Update the export button text
+                        if (selectedCount > 0) {
+                            document.getElementById('selectionSelected').parentNode.querySelector('label').textContent = 
+                                `Selected batches (${selectedCount})`;
+                            
+                            // Automatically check the "Selected batches only" option
+                            document.getElementById('selectionSelected').checked = true;
+                        } else {
+                            document.getElementById('selectionSelected').parentNode.querySelector('label').textContent = 
+                                'Selected batches only';
+                            
+                            // Revert to "All batches" if no selections
+                            document.getElementById('selectionAll').checked = true;
+                        }
+                    });
+                });
+                
+                // Add selected batch IDs to the export form when submitting
+                exportForm.addEventListener('submit', function(e) {
+                    if (document.getElementById('selectionSelected').checked) {
+                        const selectedRows = document.querySelectorAll('#batchesTable tbody tr.table-active');
+                        
+                        if (selectedRows.length === 0) {
+                            e.preventDefault();
+                            alert('Please select at least one batch to export.');
+                            return;
+                        }
+                        
+                        // Add selected batch IDs to the form
+                        selectedRows.forEach(row => {
+                            const batchId = row.querySelector('a').getAttribute('href').split('/').filter(Boolean).pop();
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'batch_ids';
+                            input.value = batchId;
+                            exportForm.appendChild(input);
+                        });
+                    }
+                });
+                
+                // Show filter panel if filters are applied
+                {% if filters_applied %}
+                filterPanel.style.display = 'block';
+                filterToggleBtn.innerHTML = '<i class="fas fa-times me-1"></i> Hide Filters';
+                {% endif %}
+            });
+        </script>
+        {% endblock %}

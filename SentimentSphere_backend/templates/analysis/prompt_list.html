@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Prompts - SentimentSphere{% endblock %}
+{% block title %}Analysis Prompts - SentimentSphere{% endblock %}
 
 {% block prompts_active %}active{% endblock %}
 
@@ -13,75 +13,189 @@
 </div>
 
 <div class="row">
-    <div class="col-12">
+    <div class="col-lg-8">
         <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Your Prompt Templates</h6>
+            <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Your Prompt Templates</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" id="promptsViewOptions" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-cog me-1"></i> Options
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="promptsViewOptions">
+                        <li><a class="dropdown-item" href="#" id="expandAllBtn"><i class="fas fa-expand-alt me-2"></i>Expand All</a></li>
+                        <li><a class="dropdown-item" href="#" id="collapseAllBtn"><i class="fas fa-compress-alt me-2"></i>Collapse All</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="exportPromptsBtn"><i class="fas fa-file-export me-2"></i>Export Prompts</a></li>
+                        <li><a class="dropdown-item" href="#" id="importPromptsBtn"><i class="fas fa-file-import me-2"></i>Import Prompts</a></li>
+                    </ul>
+                </div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Default</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for prompt in prompts %}
-                            <tr>
-                                <td>{{ prompt.name }}</td>
-                                <td>{{ prompt.description|truncatechars:100 }}</td>
-                                <td>
-                                    {% if prompt.is_default %}
-                                    <span class="badge bg-success">Default</span>
-                                    {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ prompt.created_at|date:"M d, Y" }}</td>
-                                <td>
+                {% if prompts %}
+                <div class="accordion" id="promptsAccordion">
+                    {% for prompt in prompts %}
+                    <div class="accordion-item mb-3 border {% if prompt.is_default %}border-success{% endif %} rounded">
+                        <h2 class="accordion-header" id="heading{{ prompt.id }}">
+                            <button class="accordion-button collapsed {% if prompt.is_default %}bg-success bg-opacity-10{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ prompt.id }}" aria-expanded="false" aria-controls="collapse{{ prompt.id }}">
+                                <div class="d-flex justify-content-between align-items-center w-100 pe-3">
+                                    <div>
+                                        <span class="fw-bold">{{ prompt.name }}</span>
+                                        {% if prompt.is_default %}
+                                        <span class="badge bg-success ms-2">Default</span>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">Created: {{ prompt.created_at|date:"M d, Y" }}</small>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ prompt.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ prompt.id }}" data-bs-parent="#promptsAccordion">
+                            <div class="accordion-body">
+                                {% if prompt.description %}
+                                <div class="mb-3">
+                                    <label class="form-label text-muted mb-1">Description</label>
+                                    <p class="mb-0">{{ prompt.description }}</p>
+                                </div>
+                                <hr>
+                                {% endif %}
+                                
+                                <div class="mb-3">
+                                    <label class="form-label text-muted mb-1">Prompt Template</label>
+                                    <div class="bg-light p-3 rounded">
+                                        <pre style="white-space: pre-wrap; margin-bottom: 0;">{{ prompt.prompt_template }}</pre>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-3">
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-danger delete-prompt-btn" data-bs-toggle="modal" data-bs-target="#deletePromptModal{{ prompt.id }}">
+                                            <i class="fas fa-trash me-1"></i> Delete
+                                        </button>
+                                        {% if not prompt.is_default %}
+                                        <form class="d-inline-block ms-2" method="post" action="{% url 'analysis:set_default_prompt' prompt.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check-circle me-1"></i> Set as Default
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
                                     <a href="{% url 'analysis:prompt_detail' prompt.id %}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit me-1"></i> Edit
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deletePromptModal{{ prompt.id }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    
-                                    <!-- Delete Prompt Modal -->
-                                    <div class="modal fade" id="deletePromptModal{{ prompt.id }}" tabindex="-1" aria-labelledby="deletePromptModalLabel{{ prompt.id }}" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="deletePromptModalLabel{{ prompt.id }}">Delete Prompt</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    Are you sure you want to delete the prompt "{{ prompt.name }}"? This action cannot be undone.
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <form method="post" action="{% url 'analysis:prompt_detail' prompt.id %}">
-                                                        {% csrf_token %}
-                                                        <input type="hidden" name="_method" value="DELETE">
-                                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                                    </form>
-                                                </div>
+                                </div>
+                                
+                                <!-- Usage Stats if available -->
+                                {% if prompt.usage_stats %}
+                                <div class="card mt-3 bg-light">
+                                    <div class="card-body p-3">
+                                        <h6 class="mb-2">Usage Statistics</h6>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="small"><strong>Runs:</strong> {{ prompt.usage_stats.runs }}</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="small"><strong>Items Processed:</strong> {{ prompt.usage_stats.items }}</div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="small"><strong>Last Used:</strong> {{ prompt.usage_stats.last_used|date:"M d, Y" }}</div>
                                             </div>
                                         </div>
                                     </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="text-center">No prompts created yet. Create your first prompt template!</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Delete Prompt Modal -->
+                    <div class="modal fade" id="deletePromptModal{{ prompt.id }}" tabindex="-1" aria-labelledby="deletePromptModalLabel{{ prompt.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="deletePromptModalLabel{{ prompt.id }}">Delete Prompt</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete the prompt template <strong>"{{ prompt.name }}"</strong>?</p>
+                                    <p class="text-danger"><strong>Warning:</strong> This action cannot be undone. Deleting this prompt may affect analysis runs that use it.</p>
+                                    
+                                    {% if prompt.is_default %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i> This is your default prompt template. If you delete it, you will need to set another prompt as default.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form method="post" action="{% url 'analysis:prompt_delete' prompt.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger">Delete Prompt</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-terminal fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No prompt templates found</h4>
+                    <p class="text-muted">Create your first prompt template to start analyzing feedback.</p>
+                    <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#newPromptModal">
+                        <i class="fas fa-plus me-2"></i>Create New Prompt
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3" style="background-color: var(--info-color); color: white;">
+                <h6 class="m-0 font-weight-bold">Prompt Guide</h6>
+            </div>
+            <div class="card-body">
+                <h5><i class="fas fa-lightbulb text-warning me-2"></i>What are Prompts?</h5>
+                <p>Prompt templates are used to instruct the AI on how to analyze feedback. A good prompt template will help the AI understand your specific business needs and categorize feedback correctly.</p>
+                
+                <h5 class="mt-4"><i class="fas fa-list-alt text-primary me-2"></i>Template Variables</h5>
+                <p>Use the following variables in your prompt templates:</p>
+                <ul>
+                    <li><code>{feedback}</code> - The feedback text to analyze</li>
+                    <li><code>{rating}</code> - The numeric rating (if available)</li>
+                    <li><code>{source}</code> - The source of the feedback</li>
+                </ul>
+                
+                <h5 class="mt-4"><i class="fas fa-check-circle text-success me-2"></i>Best Practices</h5>
+                <ul>
+                    <li>Be specific about what categories you want the AI to use</li>
+                    <li>Clearly explain the sentiment scoring scale</li>
+                    <li>Request structured output for consistent results</li>
+                    <li>Test your prompts on a variety of feedback examples</li>
+                </ul>
+                
+                <h5 class="mt-4"><i class="fas fa-eye text-info me-2"></i>Preview Sample</h5>
+                <div class="alert alert-secondary">
+                    <pre style="white-space: pre-wrap; margin-bottom: 0;">Analyze the following customer feedback:
+
+"{feedback}"
+
+Provide the following:
+1. Category: [Positive, Negative, Neutral, Feature Request, Bug Report]
+2. Sentiment Score: (from -1 to 1, where -1 is very negative and 1 is very positive)
+3. Key Points: (brief summary of main points)
+4. Action Needed: [Yes/No]</pre>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <button class="btn btn-info load-sample-btn" data-sample="basic">
+                        <i class="fas fa-file-import me-1"></i> Load Basic Template
+                    </button>
+                    <button class="btn btn-info mt-2 load-sample-btn" data-sample="detailed">
+                        <i class="fas fa-file-import me-1"></i> Load Detailed Template
+                    </button>
                 </div>
             </div>
         </div>
@@ -92,15 +206,15 @@
 <div class="modal fade" id="newPromptModal" tabindex="-1" aria-labelledby="newPromptModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
                 <h5 class="modal-title" id="newPromptModalLabel">Create New Prompt Template</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="post">
+            <form method="post" id="createPromptForm">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="{{ form.name.id_for_label }}" class="form-label">Template Name</label>
+                        <label for="{{ form.name.id_for_label }}" class="form-label">Template Name <span class="text-danger">*</span></label>
                         {{ form.name }}
                         {% if form.name.errors %}
                         <div class="invalid-feedback d-block">
@@ -110,14 +224,16 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="{{ form.prompt_template.id_for_label }}" class="form-label">Prompt Template</label>
+                        <label for="{{ form.prompt_template.id_for_label }}" class="form-label">Prompt Template <span class="text-danger">*</span></label>
                         {{ form.prompt_template }}
                         {% if form.prompt_template.errors %}
                         <div class="invalid-feedback d-block">
                             {{ form.prompt_template.errors.0 }}
                         </div>
                         {% endif %}
-                        <div class="form-text">Use {feedback} as a placeholder for the feedback content.</div>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i> Use <code>{feedback}</code> as a placeholder for the feedback content.
+                        </div>
                     </div>
                     
                     <div class="mb-3">
@@ -144,26 +260,27 @@
                     
                     <h6 class="mt-4">Sample Prompt Templates:</h6>
                     <div class="card mb-3">
-                        <div class="card-header">
-                            Basic Sentiment Analysis
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Basic Sentiment Analysis</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary copy-template" data-template="basic">Use this template</button>
                         </div>
                         <div class="card-body">
-                            <pre>Analyze the following feedback and categorize it as Positive, Negative, Neutral, Feature Request, or Bug Report. Also provide a sentiment score from -1 (very negative) to 1 (very positive).
+                            <pre class="mb-0" style="white-space: pre-wrap;" id="basicTemplate">Analyze the following feedback and categorize it as Positive, Negative, Neutral, Feature Request, or Bug Report. Also provide a sentiment score from -1 (very negative) to 1 (very positive).
 
 Feedback: {feedback}
 
 Category:
 Sentiment Score:</pre>
-                            <button type="button" class="btn btn-sm btn-outline-secondary copy-template">Use this template</button>
                         </div>
                     </div>
                     
                     <div class="card mb-3">
-                        <div class="card-header">
-                            Detailed Sentiment Analysis
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Detailed Sentiment Analysis</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary copy-template" data-template="detailed">Use this template</button>
                         </div>
                         <div class="card-body">
-                            <pre>Please analyze this customer feedback in detail:
+                            <pre class="mb-0" style="white-space: pre-wrap;" id="detailedTemplate">Please analyze this customer feedback in detail:
 
 "{feedback}"
 
@@ -171,8 +288,31 @@ Sentiment Score:</pre>
 2. Sentiment Score: [on a scale from -1 (very negative) to 1 (very positive)]
 3. Key points mentioned:
 4. Customer emotion:
-5. Priority level: [Low, Medium, High]</pre>
-                            <button type="button" class="btn btn-sm btn-outline-secondary copy-template">Use this template</button>
+5. Priority level: [Low, Medium, High]
+6. Action needed: [Yes/No]
+7. Recommended response: [brief suggestion]</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>Product Feedback Analysis</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary copy-template" data-template="product">Use this template</button>
+                        </div>
+                        <div class="card-body">
+                            <pre class="mb-0" style="white-space: pre-wrap;" id="productTemplate">Please analyze this product feedback carefully:
+
+Customer Feedback: "{feedback}"
+Product Rating: {rating} (if available)
+Source: {source}
+
+1. Sentiment: [Positive, Negative, Neutral]
+2. Sentiment Score: [scale from -1 to 1]
+3. Feedback Type: [General Opinion, Feature Request, Bug Report, UX Feedback, Performance Issue]
+4. Feature Area: [identify the specific product area or feature mentioned]
+5. User Pain Points: [list any specific problems mentioned]
+6. Actionable Insights: [suggest concrete improvements based on feedback]
+7. Priority Level: [Critical, High, Medium, Low]</pre>
                         </div>
                     </div>
                 </div>
@@ -184,21 +324,165 @@ Sentiment Score:</pre>
         </div>
     </div>
 </div>
+
+<!-- Import Prompts Modal -->
+<div class="modal fade" id="importPromptsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title">Import Prompt Templates</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="importPromptsForm" method="post" action="{% url 'analysis:prompt_import' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Import File (JSON)</label>
+                        <input type="file" name="import_file" class="form-control" accept=".json" required>
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i> Upload a JSON file containing prompt templates.
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="replace_existing" id="replaceExisting">
+                        <label class="form-check-label" for="replaceExisting">
+                            Replace existing prompts with the same name
+                        </label>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i> The JSON file should contain an array of prompt objects with the fields: name, prompt_template, description, and is_default.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitImportBtn">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Add click handlers for the "Use this template" buttons
+        // Template copying functionality
         const copyButtons = document.querySelectorAll('.copy-template');
         const promptTemplateField = document.getElementById('{{ form.prompt_template.id_for_label }}');
         
         copyButtons.forEach(button => {
             button.addEventListener('click', function() {
-                const templateText = this.previousElementSibling.textContent;
-                promptTemplateField.value = templateText;
+                const templateType = this.getAttribute('data-template');
+                let templateText;
+                
+                if (templateType === 'basic') {
+                    templateText = document.getElementById('basicTemplate').textContent;
+                } else if (templateType === 'detailed') {
+                    templateText = document.getElementById('detailedTemplate').textContent;
+                } else if (templateType === 'product') {
+                    templateText = document.getElementById('productTemplate').textContent;
+                }
+                
+                if (templateText) {
+                    promptTemplateField.value = templateText;
+                }
             });
         });
+        
+        // Load sample buttons
+        const loadSampleButtons = document.querySelectorAll('.load-sample-btn');
+        
+        loadSampleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const sampleType = this.getAttribute('data-sample');
+                
+                // Open the modal
+                const newPromptModal = new bootstrap.Modal(document.getElementById('newPromptModal'));
+                newPromptModal.show();
+                
+                // Short delay to ensure modal is visible before setting content
+                setTimeout(() => {
+                    // Set the template content
+                    if (sampleType === 'basic') {
+                        document.querySelector('.copy-template[data-template="basic"]').click();
+                    } else if (sampleType === 'detailed') {
+                        document.querySelector('.copy-template[data-template="detailed"]').click();
+                    }
+                }, 500);
+            });
+        });
+        
+        // Expand/Collapse all functionality
+        const expandAllBtn = document.getElementById('expandAllBtn');
+        const collapseAllBtn = document.getElementById('collapseAllBtn');
+        
+        if (expandAllBtn) {
+            expandAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                document.querySelectorAll('.accordion-collapse').forEach(item => {
+                    item.classList.add('show');
+                });
+                
+                document.querySelectorAll('.accordion-button').forEach(button => {
+                    button.classList.remove('collapsed');
+                    button.setAttribute('aria-expanded', 'true');
+                });
+            });
+        }
+        
+        if (collapseAllBtn) {
+            collapseAllBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                document.querySelectorAll('.accordion-collapse').forEach(item => {
+                    item.classList.remove('show');
+                });
+                
+                document.querySelectorAll('.accordion-button').forEach(button => {
+                    button.classList.add('collapsed');
+                    button.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+        
+        // Export prompts functionality
+        const exportPromptsBtn = document.getElementById('exportPromptsBtn');
+        
+        if (exportPromptsBtn) {
+            exportPromptsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = "{% url 'analysis:prompt_export' %}";
+            });
+        }
+        
+        // Import prompts functionality
+        const importPromptsBtn = document.getElementById('importPromptsBtn');
+        const importPromptsModal = new bootstrap.Modal(document.getElementById('importPromptsModal'));
+        const submitImportBtn = document.getElementById('submitImportBtn');
+        const importPromptsForm = document.getElementById('importPromptsForm');
+        
+        if (importPromptsBtn) {
+            importPromptsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                importPromptsModal.show();
+            });
+        }
+        
+        if (submitImportBtn) {
+            submitImportBtn.addEventListener('click', function() {
+                const fileInput = importPromptsForm.querySelector('input[type="file"]');
+                
+                if (!fileInput.files.length) {
+                    alert('Please select a file to import.');
+                    return;
+                }
+                
+                importPromptsForm.submit();
+            });
+        }
     });
 </script>
 {% endblock %}

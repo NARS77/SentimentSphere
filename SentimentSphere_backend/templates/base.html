@@ -17,23 +17,23 @@
 
     <!-- Custom CSS -->
     <style>
-        :root {
-            --primary-color: #3949ab;      /* Deep indigo blue */
-            --secondary-color: #5e35b1;    /* Deep purple */
-            --success-color: #2e7d32;      /* Green */
-            --info-color: #0288d1;         /* Blue */
-            --warning-color: #f57c00;      /* Orange */
-            --danger-color: #d32f2f;       /* Red */
-            --light-color: #f5f5f5;        /* Light gray */
-            --dark-color: #37474f;         /* Dark blue-gray */
-            
-            /* Additional theme colors */
-            --neutral-color: #78909c;      /* Blue-gray */
-            --feature-color: #7b1fa2;      /* Purple */
-            --bug-color: #ff8f00;          /* Amber */
-            --positive-color: #00897b;     /* Teal */
-            --negative-color: #c62828;     /* Deep red */
-        }
+       :root {
+    --primary-color: #4e73df;
+    --secondary-color: #6c757d;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #f8f9fc;
+    --dark-color: #5a5c69;
+    
+    /* Additional colors for feedback categories */
+    --positive-color: #1cc88a;
+    --negative-color: #e74a3b;
+    --neutral-color: #858796;
+    --feature-color: #4e73df;
+    --bug-color: #f6c23e;
+}
 
         /* Base Styles */
         body {
@@ -45,19 +45,41 @@
 
         /* Animations */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         /* Sidebar Styles */
@@ -385,7 +407,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             z-index: 9999;
             display: none;
             transition: opacity 0.3s ease;
@@ -394,6 +416,9 @@
         .spinner-border {
             width: 3rem;
             height: 3rem;
+        }
+        .profile-icon1{
+            color: #121212 !important;
         }
 
         /* Dark Mode Styles */
@@ -454,16 +479,98 @@
             color: #e0e0e0;
         }
 
+        /* Enable horizontal scrolling for tables and other wide content */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        /* Ensure containers don't restrict horizontal overflow */
+        .container-fluid,
+        .container {
+            max-width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin-right: auto;
+            margin-left: auto;
+            overflow-x: auto;
+        }
+
+        /* Ensure cards can handle horizontal overflow */
+        .card-body {
+            overflow-x: auto;
+        }
+
+        /* Preserve white space in pre elements for code display */
+        pre {
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        /* Allow code blocks to scroll horizontally */
+        code {
+            white-space: pre;
+            overflow-x: auto;
+            display: block;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+        }
+
+        /* Ensure long text content in tables doesn't break layout */
+        table td {
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Add a class for expanding table cells on hover/focus */
+        table td.expandable {
+            white-space: nowrap;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: max-width 0.3s ease;
+        }
+
+        table td.expandable:hover,
+        table td.expandable:focus {
+            max-width: 100%;
+            white-space: normal;
+            overflow: visible;
+        }
+
+        /* Make sure feedback content always has horizontal scroll if needed */
+        .feedback-content {
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Handle wide elements like charts */
+        .chart-area,
+        .chart-pie,
+        .chart-bar {
+            position: relative;
+            overflow-x: auto;
+            width: 100%;
+        }
+
         /* Responsive Layout Adjustments */
         @media (max-width: 768px) {
             .card-body {
                 padding: 0.75rem;
             }
-            
-            .table td, .table th {
+
+            .table td,
+            .table th {
                 padding: 0.5rem;
             }
-            
+
             .sidebar {
                 width: 260px;
                 transform: translateX(-100%);
@@ -472,11 +579,11 @@
                 height: 100%;
                 transition: transform 0.3s ease;
             }
-            
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             .content {
                 margin-left: 0 !important;
                 width: 100% !important;
@@ -485,7 +592,7 @@
             .navbar-toggler {
                 display: block;
             }
-            
+
             .navbar-collapse {
                 display: none;
             }
@@ -580,7 +687,7 @@
                         <span>Logout</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="darkModeToggle">
                         <i class="fas fa-fw fa-moon"></i>
@@ -603,7 +710,8 @@
                     </button>
 
                     <!-- Topbar Search -->
-                    <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+                    <form
+                        class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
                         <div class="input-group">
                             <input type="text" class="form-control bg-light small" placeholder="Search for..."
                                 aria-label="Search" aria-describedby="basic-addon2">
@@ -621,9 +729,9 @@
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                            <a class="nav-link dropdown-toggle profile-icon1" href="#" id="userDropdown" role="button"
                                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ user.username }}</span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"  >{{ user.username }}</span>
                                 <i class="fas fa-user-circle fa-fw"></i>
                             </a>
                             <!-- Dropdown - User Information -->
@@ -694,56 +802,56 @@
         function showLoading() {
             document.getElementById('loadingOverlay').style.display = 'block';
         }
-        
+
         // Hide loading overlay
         function hideLoading() {
             document.getElementById('loadingOverlay').style.display = 'none';
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             // Form loading indicators
             const analysisForm = document.querySelector('form[action*="analyze"]');
             if (analysisForm) {
                 analysisForm.addEventListener('submit', showLoading);
             }
-            
+
             const uploadForm = document.querySelector('form[action*="upload"]');
             if (uploadForm) {
                 uploadForm.addEventListener('submit', showLoading);
             }
-            
+
             // Mobile sidebar toggle
             const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
             const sidebar = document.querySelector('.sidebar');
-            
+
             if (sidebarToggleBtn && sidebar) {
-                sidebarToggleBtn.addEventListener('click', function() {
+                sidebarToggleBtn.addEventListener('click', function () {
                     sidebar.classList.toggle('show');
                 });
-                
+
                 // Close sidebar when clicking outside
-                document.addEventListener('click', function(event) {
+                document.addEventListener('click', function (event) {
                     if (!sidebar.contains(event.target) && !sidebarToggleBtn.contains(event.target)) {
                         sidebar.classList.remove('show');
                     }
                 });
             }
-            
+
             // Dark mode toggle
             const darkModeToggle = document.getElementById('darkModeToggle');
             if (darkModeToggle) {
-                darkModeToggle.addEventListener('click', function(e) {
+                darkModeToggle.addEventListener('click', function (e) {
                     e.preventDefault();
                     document.body.classList.toggle('dark-mode');
-                    
+
                     // Save preference
                     const isDarkMode = document.body.classList.contains('dark-mode');
                     localStorage.setItem('darkMode', isDarkMode);
-                    
+
                     // Update icon and text
                     const icon = darkModeToggle.querySelector('i');
                     const text = darkModeToggle.querySelector('span');
-                    
+
                     if (isDarkMode) {
                         icon.classList.remove('fa-moon');
                         icon.classList.add('fa-sun');
@@ -754,25 +862,49 @@
                         text.textContent = 'Dark Mode';
                     }
                 });
-                
+
                 // Check saved preference
                 if (localStorage.getItem('darkMode') === 'true') {
                     document.body.classList.add('dark-mode');
                     const icon = darkModeToggle.querySelector('i');
                     const text = darkModeToggle.querySelector('span');
-                    
+
                     icon.classList.remove('fa-moon');
                     icon.classList.add('fa-sun');
                     text.textContent = 'Light Mode';
                 }
             }
-            
+
             // Add animation to cards
             const cards = document.querySelectorAll('.card');
             cards.forEach((card, index) => {
                 card.style.animationDelay = `${index * 0.1}s`;
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Make the content cells expandable in tables
+            const contentCells = document.querySelectorAll('table td:nth-child(4)'); // Assuming content is the 4th column
+            contentCells.forEach(cell => {
+                cell.classList.add('expandable');
+            });
+
+            // Handle tables that might be dynamically loaded
+            const handleDynamicTables = function (mutationsList, observer) {
+                for (let mutation of mutationsList) {
+                    if (mutation.type === 'childList') {
+                        const newContentCells = document.querySelectorAll('table td:nth-child(4):not(.expandable)');
+                        newContentCells.forEach(cell => {
+                            cell.classList.add('expandable');
+                        });
+                    }
+                }
+            };
+
+            // Set up observer for dynamic content
+            const observer = new MutationObserver(handleDynamicTables);
+            observer.observe(document.body, { childList: true, subtree: true });
+        });   
     </script>
 
     {% block extra_js %}{% endblock %}

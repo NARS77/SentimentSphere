@@ -15,6 +15,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib.auth.decorators import login_required
+# from django.contrib import messages
+# from django.http import HttpResponse, JsonResponse
+
 from .models import AnalysisPrompt, AnalysisRun
 from .forms import UploadBatchForm, AnalysisPromptForm, AnalyzeBatchForm
 from .serializers import AnalysisPromptSerializer, AnalysisRunSerializer
@@ -382,6 +387,141 @@ def process_batch(run):
         run.save()
         
         return False, error_msg
+    
+
+
+@login_required
+def prompt_delete(request, pk):
+    """View to delete a specific prompt"""
+    prompt = get_object_or_404(AnalysisPrompt, pk=pk, client=request.user)
+    
+    if request.method == 'POST':
+        # Check if this is the default prompt
+        is_default = prompt.is_default
+        
+        # Delete the prompt
+        prompt.delete()
+        
+        # If this was the default prompt, try to set another one as default
+        if is_default:
+            try:
+                new_default = AnalysisPrompt.objects.filter(client=request.user).first()
+                if new_default:
+                    new_default.is_default = True
+                    new_default.save()
+            except AnalysisPrompt.DoesNotExist:
+                pass
+        
+        messages.success(request, 'Prompt deleted successfully.')
+        return redirect('analysis:prompt_list')
+    
+    # If not POST, redirect to the detail page
+    return redirect('analysis:prompt_detail', pk=pk)
+
+@login_required
+def set_default_prompt(request, pk):
+    """Set a prompt as the default"""
+    prompt = get_object_or_404(AnalysisPrompt, pk=pk, client=request.user)
+    
+    if request.method == 'POST':
+        # Set all prompts to non-default
+        AnalysisPrompt.objects.filter(client=request.user).update(is_default=False)
+        
+        # Set this prompt as default
+        prompt.is_default = True
+        prompt.save()
+        
+        messages.success(request, f'"{prompt.name}" is now your default prompt template.')
+    
+    return redirect('analysis:prompt_list')
+
+@login_required
+def prompt_export(request):
+    """Export prompts as JSON"""
+    prompts = AnalysisPrompt.objects.filter(client=request.user)
+    
+    # Convert prompts to a list of dictionaries
+    data = []
+    for prompt in prompts:
+        data.append({
+            'name': prompt.name,
+            'prompt_template': prompt.prompt_template,
+            'description': prompt.description,
+            'is_default': prompt.is_default
+        })
+    
+    # Create response with JSON data
+    response = HttpResponse(json.dumps(data, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="prompts_export.json"'
+    
+    return response
+
+@login_required
+def prompt_import(request):
+    """Import prompts from JSON"""
+    if request.method == 'POST' and request.FILES.get('import_file'):
+        import_file = request.FILES['import_file']
+        replace_existing = request.POST.get('replace_existing') == 'on'
+        
+        try:
+            # Read and parse the JSON file
+            data = json.loads(import_file.read().decode('utf-8'))
+            
+            # Process each prompt in the data
+            import_count = 0
+            for prompt_data in data:
+                # Check if required fields are present
+                if not all(key in prompt_data for key in ['name', 'prompt_template']):
+                    continue
+                
+                # Check if a prompt with this name already exists
+                existing_prompt = None
+                try:
+                    existing_prompt = AnalysisPrompt.objects.get(
+                        client=request.user, 
+                        name=prompt_data['name']
+                    )
+                except AnalysisPrompt.DoesNotExist:
+                    pass
+                
+                if existing_prompt and replace_existing:
+                    # Update existing prompt
+                    existing_prompt.prompt_template = prompt_data['prompt_template']
+                    existing_prompt.description = prompt_data.get('description', '')
+                    if prompt_data.get('is_default'):
+                        # Set all other prompts to non-default
+                        AnalysisPrompt.objects.filter(client=request.user).update(is_default=False)
+                        existing_prompt.is_default = True
+                    existing_prompt.save()
+                    import_count += 1
+                elif not existing_prompt:
+                    # Create new prompt
+                    new_prompt = AnalysisPrompt(
+                        client=request.user,
+                        name=prompt_data['name'],
+                        prompt_template=prompt_data['prompt_template'],
+                        description=prompt_data.get('description', ''),
+                        is_default=prompt_data.get('is_default', False)
+                    )
+                    
+                    # If this is set as default, ensure no other prompts are default
+                    if new_prompt.is_default:
+                        AnalysisPrompt.objects.filter(client=request.user).update(is_default=False)
+                    
+                    new_prompt.save()
+                    import_count += 1
+            
+            messages.success(request, f'Successfully imported {import_count} prompts.')
+        except json.JSONDecodeError:
+            messages.error(request, 'Invalid JSON file. Please upload a valid JSON file.')
+        except Exception as e:
+            messages.error(request, f'Error importing prompts: {str(e)}')
+        
+        return redirect('analysis:prompt_list')
+    
+    # If not POST or no file, redirect back to prompt list
+    return redirect('analysis:prompt_list')
+
 # API Views
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])

@@ -1,0 +1,26 @@
+content,rating,customer_id,feedback_date
+"The mobile app has been incredibly intuitive to use! I love how easy it is to navigate between different sections. The dark mode option is also a great touch.",5,cust001,2025-05-01
+"App keeps crashing whenever I try to upload images. This has been happening for over a week now. Very frustrating experience.",1,cust002,2025-05-02
+"The customer service team was extremely helpful when I had trouble with my account. They resolved my issue within minutes.",5,cust003,2025-05-02
+"This software is decent, but could use some improvements. The interface feels a bit outdated compared to competitors.",3,cust004,2025-05-03
+"Would love to see a feature that allows scheduling posts in advance. Otherwise, great platform!",4,cust005,2025-05-03
+"The recent update completely broke the search functionality. Now I can't find any of my saved items. Please fix this ASAP!",1,cust006,2025-05-04
+"Excellent product! The analytics dashboard gives me exactly the insights I need for my business.",5,cust007,2025-05-04
+"The app is good overall, but it runs quite slowly on my device. Some optimization would be appreciated.",3,cust008,2025-05-05
+"I've been using this service for 3 years now and it keeps getting better. The new collaboration tools are fantastic.",5,cust009,2025-05-05
+"Can you please add integration with Google Calendar? That would make this perfect for my workflow.",4,cust010,2025-05-06
+"The pricing is too high for what this software offers. I'm considering switching to a competitor.",2,cust011,2025-05-06
+"Bug in the checkout process - it doubled charged my credit card! Had to spend an hour with support to get it fixed.",1,cust012,2025-05-07
+"Really impressed with how customizable everything is. I can set up the workspace exactly how I want it.",5,cust013,2025-05-07
+"App is fine but notification system is unreliable. Sometimes I get notified hours after messages are received.",3,cust014,2025-05-08
+"The export function doesn't work properly. It only exports partial data which makes it useless for my reporting needs.",2,cust015,2025-05-08
+"Love the new voice dictation feature! Makes it so much easier to take notes on the go.",5,cust016,2025-05-09
+"Average service, nothing special compared to other options on the market.",3,cust017,2025-05-09
+"Please implement a better way to organize files in the cloud storage section. The current folder structure is confusing.",3,cust018,2025-05-10
+"The app crashes every single time I try to edit a document on my iPad Pro. This is a critical bug that needs fixing.",1,cust019,2025-05-10
+"Your team has created something truly special here. The attention to detail is remarkable.",5,cust020,2025-05-11
+"I need an option to merge multiple accounts. Currently managing separate logins for different projects which is inefficient.",3,cust021,2025-05-11
+"The latest update has significantly improved loading times. Everything feels much snappier now!",4,cust022,2025-05-12
+"The software randomly logs me out several times a day, forcing me to re-enter my credentials. Very annoying bug.",2,cust023,2025-05-12
+"Would be great to have a dark mode option to reduce eye strain when working at night.",4,cust024,2025-05-13
+"Absolutely terrible experience. Lost all my data after the update and support hasn't responded to my emails for 3 days.",1,cust025,2025-05-13

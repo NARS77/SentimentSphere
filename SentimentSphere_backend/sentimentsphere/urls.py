@@ -12,8 +12,16 @@ urlpatterns = [
     # Add the homepage at the root URL
     path('', homepage, name='homepage'),
     
-    # Your existing URLs
+    # Admin URL
     path('admin/', admin.site.urls),
+    
+    # Include app URLs without explicit namespaces
+    # (they'll use the app_name from their respective url files)
+    path('accounts/', include('accounts.urls')),
+    path('dashboard/', include('dashboard.urls')),
+    path('analysis/', include('analysis.urls')),
+    
+    # API URLs - use the same patterns but with 'api/' prefix
     path('api/accounts/', include('accounts.urls')),
     path('api/dashboard/', include('dashboard.urls')),
     path('api/analysis/', include('analysis.urls')),

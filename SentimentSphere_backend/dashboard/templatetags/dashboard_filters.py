@@ -21,3 +21,11 @@ def filter_by_sentiment_range(queryset, range_str):
     except (ValueError, TypeError):
         # If the range string is invalid, return empty queryset
         return queryset.none()
+
+@register.filter
+def percentage_of(value, total):
+    """Calculate percentage of a value relative to a total"""
+    try:
+        return int(float(value) / float(total) * 100)
+    except (ValueError, ZeroDivisionError):
+        return 0
